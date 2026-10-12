@@ -1,0 +1,1 @@
+Temporary V23 deployment workflow expects release tag v23-deploy and asset clarte-v23-production.zip.
