@@ -31,7 +31,7 @@
 (() => {
   const ACCESS_KEY='clarte_beta_access_v1';
   const ALLOWED=["53faa9c2fe7d4c2439c641711fd998fdc76fc89b93961f91447c1afe6be195bd","f7e4aaaf1a1a452374ccaf33ed53f04f32f07680f5da7ffa654802af7df3cf2b","e24facd9de76ce44935fdafd1bef9bc9b8baf12d4018b9262ceaf2e8536d430d","d2acc0e750c2e21ffbdeed8e0d39a001ff5f863ae8c37640f6f61b298f97feb6","c869e8a9d7a83f11e39bec6e93ecba495fddb2876c60ffd14fb9e7f7f2991b20","7576228b787ddb05f856019c177055b5678a2857e27c47ca1cfac438a7d41fc4"];
-  const PAYLOADS=['payload-v23-1.txt','payload-v23-2.txt','payload-v23-3.txt','payload-v23-4.txt','payload-v23-5.txt','payload-v23-6a.txt','payload-v23-6b.txt','payload-v23-7.txt','payload-v23-8.txt','payload-v23-9a.txt','payload-v23-9b.txt'];
+  const PAYLOADS=['payload-v23-fixed-01.txt','payload-v23-fixed-02.txt','payload-v23-fixed-03.txt','payload-v23-fixed-04.txt','payload-v23-fixed-05.txt','payload-v23-fixed-06.txt','payload-v23-fixed-07.txt','payload-v23-fixed-08.txt','payload-v23-fixed-09a.txt','payload-v23-fixed-09b.txt','payload-v23-fixed-10a.txt','payload-v23-fixed-10b.txt','payload-v23-fixed-11a.txt','payload-v23-fixed-11b.txt','payload-v23-fixed-12a.txt','payload-v23-fixed-12b.txt','payload-v23-fixed-13a.txt','payload-v23-fixed-13b.txt'];
   const hex=buf=>Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
   const canonical=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   async function digest(s){return hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical(s))))}
