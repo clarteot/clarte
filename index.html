@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <meta name="theme-color" content="#F6FBFA">
+  <meta name="theme-color" content="#F7F9FB">
   <title>Clarte·我的手账管理</title>
   <style>
     :root{--bg:#f6f8fa;--card:#fff;--ink:#314844;--muted:#81918f;--line:#d8e5e2;--teal:#3c8881}
@@ -30,31 +30,21 @@
 <script>
 (() => {
   const ACCESS_KEY='clarte_beta_access_v1';
-  const ALLOWED=["53faa9c2fe7d4c2439c641711fd998fdc76fc89b93961f91447c1afe6be195bd", "f7e4aaaf1a1a452374ccaf33ed53f04f32f07680f5da7ffa654802af7df3cf2b", "e24facd9de76ce44935fdafd1bef9bc9b8baf12d4018b9262ceaf2e8536d430d", "d2acc0e750c2e21ffbdeed8e0d39a001ff5f863ae8c37640f6f61b298f97feb6", "c869e8a9d7a83f11e39bec6e93ecba495fddb2876c60ffd14fb9e7f7f2991b20", "7576228b787ddb05f856019c177055b5678a2857e27c47ca1cfac438a7d41fc4"];
-  const PAYLOADS=["payload-1.txt","payload-2.txt","payload-3.txt","payload-4.txt","payload-5.txt","payload-6.txt","payload-7.txt"];
+  const ALLOWED=["53faa9c2fe7d4c2439c641711fd998fdc76fc89b93961f91447c1afe6be195bd","f7e4aaaf1a1a452374ccaf33ed53f04f32f07680f5da7ffa654802af7df3cf2b","e24facd9de76ce44935fdafd1bef9bc9b8baf12d4018b9262ceaf2e8536d430d","d2acc0e750c2e21ffbdeed8e0d39a001ff5f863ae8c37640f6f61b298f97feb6","c869e8a9d7a83f11e39bec6e93ecba495fddb2876c60ffd14fb9e7f7f2991b20","7576228b787ddb05f856019c177055b5678a2857e27c47ca1cfac438a7d41fc4"];
+  const PAYLOADS=['payload-v23.txt'];
   const hex=buf=>Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
   const canonical=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-  async function digest(s) {
-    return hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical(s))));
-  }
-  async function loadApp() {
+  async function digest(s){return hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical(s))))}
+  async function loadApp(){
     document.body.innerHTML='<div class="loading">正在打开 Clarte…</div>';
-    try {
+    try{
       const encoded=(await Promise.all(PAYLOADS.map(p=>fetch(p,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error(r.status);return r.text()})))).join('');
       const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
-      let html=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
-      html=html.replace('<div class="list-summary"><span id="resultCount">0</span> 条结果</div>','<div class="list-summary"><span id="paperBrandCount">0</span>个品牌，<span id="resultCount">0</span>款样式</div>');
-      html=html.replace("  $('resultCount').textContent=filtered.length;","  $('paperBrandCount').textContent=new Set(filtered.map(p=>(p.brand||'').trim()).filter(Boolean)).size;\n  $('resultCount').textContent=filtered.length;");
-      html=html.replace("name==='list'?'纸张'","name==='list'?'纸'");
-      const paperEnhancement="<style id=\"clarte-paper-group-enhancements\">\n.spec-group-meta{display:flex;align-items:baseline;gap:7px;min-width:0}\n.spec-group-heading small{font-size:9px;color:var(--muted);font-weight:600}\n.spec-group.is-collapsed>.brand-group{display:none}\n.brand-group.is-collapsed>.brand-card-grid{display:none}\n.spec-group.is-collapsed>.spec-group-heading .paper-collapse-btn .collapse-chevron,\n.brand-group.is-collapsed>.brand-group-heading .paper-collapse-btn .collapse-chevron{transform:rotate(-45deg);margin-top:2px}\n</style>\n<script>\n(()=>{\n  const PAPER_COLLAPSE_KEY='paper_collapsed_groups_v1_8_3';\n  let collapsed;\n  try{ const raw=JSON.parse(localStorage.getItem(PAPER_COLLAPSE_KEY)||'[]'); collapsed=new Set(Array.isArray(raw)?raw:[]); }\n  catch(e){ collapsed=new Set(); }\n  const save=()=>localStorage.setItem(PAPER_COLLAPSE_KEY,JSON.stringify([...collapsed]));\n  const specKey=spec=>'spec:'+spec;\n  const brandKey=(spec,brand)=>'brand:'+spec+'::'+brand;\n  function directChild(el,selector){ return [...el.children].find(child=>child.matches(selector))||null; }\n  function addToggle(heading,level,spec,brand,isCollapsed){\n    let btn=directChild(heading,'.paper-collapse-btn');\n    if(!btn){\n      btn=document.createElement('button');\n      btn.type='button';\n      btn.className='brand-collapse-btn paper-collapse-btn';\n      btn.innerHTML='<i class=\"collapse-chevron\"></i>';\n      heading.appendChild(btn);\n    }\n    btn.dataset.level=level;\n    btn.dataset.spec=spec;\n    if(brand) btn.dataset.brand=brand; else delete btn.dataset.brand;\n    btn.setAttribute('aria-expanded',isCollapsed?'false':'true');\n    btn.setAttribute('aria-label',(isCollapsed?'展开':'折叠')+(brand||spec));\n  }\n  function formatCard(card){\n    if(typeof papers==='undefined') return;\n    const p=papers.find(x=>String(x.id)===String(card.dataset.id));\n    if(!p) return;\n    const title=card.querySelector('.paper-title');\n    if(title) title.textContent=[p.paperType,p.layout].filter(Boolean).join(' · ')||p.notebookType||'未命名纸品';\n    const meta=card.querySelector('.paper-meta');\n    if(meta){\n      meta.innerHTML='';\n      [p.gsm,p.paperColor].filter(Boolean).forEach((value,index)=>{\n        if(index){ const sep=document.createElement('span'); sep.textContent='·'; meta.appendChild(sep); }\n        const item=document.createElement('span');\n        if(value===p.paperColor){ const dot=document.createElement('i'); dot.className='color-dot'; item.appendChild(dot); }\n        item.appendChild(document.createTextNode(value));\n        meta.appendChild(item);\n      });\n    }\n  }\n  function applyPaperEnhancements(){\n    const root=document.getElementById('paperList');\n    if(!root) return;\n    root.querySelectorAll('.spec-group').forEach(specGroup=>{\n      const specHeading=directChild(specGroup,'.spec-group-heading');\n      if(!specHeading) return;\n      let meta=directChild(specHeading,'.spec-group-meta');\n      let h3=meta?meta.querySelector('h3'):directChild(specHeading,'h3');\n      const spec=(h3&&h3.textContent.trim())||'其他';\n      if(!meta){\n        const oldCount=directChild(specHeading,'span');\n        meta=document.createElement('div');\n        meta.className='spec-group-meta';\n        if(h3) meta.appendChild(h3);\n        if(oldCount){ const small=document.createElement('small'); small.textContent=oldCount.textContent; meta.appendChild(small); oldCount.remove(); }\n        specHeading.insertBefore(meta,specHeading.firstChild);\n      }\n      const specCollapsed=collapsed.has(specKey(spec));\n      specGroup.classList.toggle('is-collapsed',specCollapsed);\n      addToggle(specHeading,'spec',spec,'',specCollapsed);\n      [...specGroup.children].filter(el=>el.matches('.brand-group')).forEach(brandGroup=>{\n        const brandHeading=directChild(brandGroup,'.brand-group-heading');\n        if(!brandHeading) return;\n        let brandMeta=directChild(brandHeading,'.brand-group-meta');\n        if(!brandMeta){\n          const brandNameEl=directChild(brandHeading,'span');\n          const countEl=directChild(brandHeading,'small');\n          brandMeta=document.createElement('div');\n          brandMeta.className='brand-group-meta';\n          if(brandNameEl) brandMeta.appendChild(brandNameEl);\n          if(countEl) brandMeta.appendChild(countEl);\n          brandHeading.insertBefore(brandMeta,brandHeading.firstChild);\n        }\n        const brand=(brandMeta.querySelector('span')?.textContent||'未填写品牌').trim();\n        const brandCollapsed=collapsed.has(brandKey(spec,brand));\n        brandGroup.classList.toggle('is-collapsed',brandCollapsed);\n        addToggle(brandHeading,'brand',spec,brand,brandCollapsed);\n      });\n    });\n    root.querySelectorAll('.paper-card').forEach(formatCard);\n    if(!root.dataset.paperCollapseBound){\n      root.dataset.paperCollapseBound='1';\n      root.addEventListener('click',e=>{\n        const btn=e.target.closest('.paper-collapse-btn');\n        if(!btn||!root.contains(btn)) return;\n        e.stopPropagation();\n        const key=btn.dataset.level==='spec'?specKey(btn.dataset.spec||'其他'):brandKey(btn.dataset.spec||'其他',btn.dataset.brand||'未填写品牌');\n        if(collapsed.has(key)) collapsed.delete(key); else collapsed.add(key);\n        save();\n        applyPaperEnhancements();\n      });\n    }\n  }\n  if(typeof renderList==='function'&&!renderList.__clartePaperEnhanced){\n    const originalRenderList=renderList;\n    const wrapped=function(){ const result=originalRenderList.apply(this,arguments); requestAnimationFrame(applyPaperEnhancements); return result; };\n    wrapped.__clartePaperEnhanced=true;\n    renderList=wrapped;\n  }\n  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>requestAnimationFrame(applyPaperEnhancements));\n  else requestAnimationFrame(applyPaperEnhancements);\n})();\n<\\/script>";
-      html=html.replace('</body>',paperEnhancement+'</body>');
-      document.open(); document.write(html); document.close();
-    } catch(e) {
-      document.body.innerHTML='<div class="loading">Clarte 加载失败，请刷新页面重试。</div>';
-      console.error(e);
-    }
+      const html=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+      document.open();document.write(html);document.close();
+    }catch(e){document.body.innerHTML='<div class="loading">Clarte 加载失败，请刷新页面重试。</div>';console.error(e)}
   }
-  function showGate() {
+  function showGate(){
     document.body.innerHTML=`<main class="gate"><section class="gate-card">
       <p class="eyebrow">CLARTE · PRIVATE BETA</p>
       <h1>欢迎来到 Clarte</h1>
@@ -67,33 +57,11 @@
       </form>
       <p class="note">验证成功后，本设备会记住访问权限。清除浏览器网站数据后需要重新输入。</p>
     </section></main>`;
-    const form=document.getElementById('inviteForm');
-    const input=document.getElementById('inviteCode');
-    const btn=document.getElementById('inviteBtn');
-    const msg=document.getElementById('inviteMsg');
+    const form=document.getElementById('inviteForm'),input=document.getElementById('inviteCode'),btn=document.getElementById('inviteBtn'),msg=document.getElementById('inviteMsg');
     setTimeout(()=>input.focus(),60);
-    form.addEventListener('submit',async e=>{
-      e.preventDefault(); msg.textContent='';
-      if(!input.value.trim()){msg.textContent='请输入邀请码';return}
-      btn.disabled=true; btn.textContent='验证中…';
-      try {
-        const h=await digest(input.value);
-        if(ALLOWED.includes(h)) {
-          localStorage.setItem(ACCESS_KEY,h);
-          await loadApp();
-          return;
-        }
-        msg.textContent='邀请码无效，请检查后重试';
-        input.select();
-      } catch(err) {
-        msg.textContent='验证失败，请刷新后重试';
-        console.error(err);
-      }
-      btn.disabled=false; btn.textContent='进入 Clarte';
-    });
+    form.addEventListener('submit',async e=>{e.preventDefault();msg.textContent='';if(!input.value.trim()){msg.textContent='请输入邀请码';return}btn.disabled=true;btn.textContent='验证中…';try{const h=await digest(input.value);if(ALLOWED.includes(h)){localStorage.setItem(ACCESS_KEY,h);await loadApp();return}msg.textContent='邀请码无效，请检查后重试';input.select()}catch(err){msg.textContent='验证失败，请刷新后重试';console.error(err)}btn.disabled=false;btn.textContent='进入 Clarte'});
   }
-  const saved=localStorage.getItem(ACCESS_KEY);
-  if(saved && ALLOWED.includes(saved)) loadApp(); else showGate();
+  const saved=localStorage.getItem(ACCESS_KEY);if(saved&&ALLOWED.includes(saved))loadApp();else showGate();
 })();
 </script>
 </body>
