@@ -1,0 +1,28 @@
+name: Deploy V23 from release asset
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download production bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download v23-deploy --pattern 'clarte-v23-production.zip' --clobber
+      - name: Install production files
+        run: |
+          unzip -o clarte-v23-production.zip -d /tmp/clarte-v23
+          cp /tmp/clarte-v23/index.html ./index.html
+          cp /tmp/clarte-v23/payload-*.txt ./
+          rm -f clarte-v23-production.zip
+      - name: Commit production V23
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html payload-*.txt
+          git diff --cached --quiet && exit 0
+          git commit -m 'Deploy Clarte V23 production'
+          git push
