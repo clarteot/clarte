@@ -1,1 +1,95 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><title>Clarte·我的手账管理</title></head><body><script>(async()=>{try{const ps=["payload-1.txt", "payload-2.txt", "payload-3.txt", "payload-4.txt", "payload-5.txt", "payload-6.txt", "payload-7.txt"],s=(await Promise.all(ps.map(p=>fetch(p).then(r=>{if(!r.ok)throw Error(r.status);return r.text()})))).join(''),b=Uint8Array.from(atob(s),c=>c.charCodeAt(0)),t=await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text();document.open();document.write(t);document.close()}catch(e){document.body.innerHTML='<p style="font:16px sans-serif;padding:24px">Clarte 加载失败，请刷新页面重试。</p>';console.error(e)}})()</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#F6FBFA">
+  <title>Clarte·我的手账管理</title>
+  <style>
+    :root{--bg:#f6f8fa;--card:#fff;--ink:#314844;--muted:#81918f;--line:#d8e5e2;--teal:#3c8881}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:var(--ink)}
+    body{min-height:100vh}
+    .gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+    .gate-card{width:min(430px,100%);background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:24px;padding:34px 28px 30px;box-shadow:0 18px 50px rgba(53,89,84,.08)}
+    .eyebrow{margin:0 0 10px;color:var(--teal);font-size:11px;font-weight:700;letter-spacing:.22em}
+    h1{font-size:28px;margin:0 0 8px;letter-spacing:-.02em}
+    .sub{margin:0 0 26px;color:var(--muted);font-size:14px;line-height:1.7}
+    label{display:block;font-size:13px;font-weight:650;margin-bottom:9px}
+    input{width:100%;height:50px;border:1px solid var(--line);border-radius:14px;padding:0 15px;background:#fbfdfd;color:var(--ink);font-size:16px;outline:none;text-transform:uppercase;letter-spacing:.04em}
+    input:focus{border-color:#83b7b1;box-shadow:0 0 0 3px rgba(60,136,129,.1)}
+    button{width:100%;height:50px;margin-top:13px;border:0;border-radius:14px;background:var(--teal);color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.6;cursor:default}
+    .msg{min-height:21px;margin:10px 2px 0;font-size:12px;color:#b25d57}
+    .note{margin:19px 0 0;padding-top:17px;border-top:1px solid #edf2f1;color:#99a6a4;font-size:11px;line-height:1.65}
+    .loading{min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px}
+  </style>
+</head>
+<body>
+<script>
+(() => {
+  const ACCESS_KEY='clarte_beta_access_v1';
+  const ALLOWED=["53faa9c2fe7d4c2439c641711fd998fdc76fc89b93961f91447c1afe6be195bd", "f7e4aaaf1a1a452374ccaf33ed53f04f32f07680f5da7ffa654802af7df3cf2b", "e24facd9de76ce44935fdafd1bef9bc9b8baf12d4018b9262ceaf2e8536d430d", "d2acc0e750c2e21ffbdeed8e0d39a001ff5f863ae8c37640f6f61b298f97feb6", "c869e8a9d7a83f11e39bec6e93ecba495fddb2876c60ffd14fb9e7f7f2991b20", "7576228b787ddb05f856019c177055b5678a2857e27c47ca1cfac438a7d41fc4"];
+  const PAYLOADS=["payload-1.txt","payload-2.txt","payload-3.txt","payload-4.txt","payload-5.txt","payload-6.txt","payload-7.txt"];
+  const hex=buf=>Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  const canonical=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  async function digest(s) {
+    return hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical(s))));
+  }
+  async function loadApp() {
+    document.body.innerHTML='<div class="loading">正在打开 Clarte…</div>';
+    try {
+      const encoded=(await Promise.all(PAYLOADS.map(p=>fetch(p,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error(r.status);return r.text()})))).join('');
+      const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
+      const html=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+      document.open(); document.write(html); document.close();
+    } catch(e) {
+      document.body.innerHTML='<div class="loading">Clarte 加载失败，请刷新页面重试。</div>';
+      console.error(e);
+    }
+  }
+  function showGate() {
+    document.body.innerHTML=`<main class="gate"><section class="gate-card">
+      <p class="eyebrow">CLARTE · PRIVATE BETA</p>
+      <h1>欢迎来到 Clarte</h1>
+      <p class="sub">目前处于内测阶段，请输入邀请码后继续。</p>
+      <form id="inviteForm">
+        <label for="inviteCode">邀请码</label>
+        <input id="inviteCode" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" placeholder="CLARTE-XXXX-XXXX">
+        <button id="inviteBtn" type="submit">进入 Clarte</button>
+        <p class="msg" id="inviteMsg"></p>
+      </form>
+      <p class="note">验证成功后，本设备会记住访问权限。清除浏览器网站数据后需要重新输入。</p>
+    </section></main>`;
+    const form=document.getElementById('inviteForm');
+    const input=document.getElementById('inviteCode');
+    const btn=document.getElementById('inviteBtn');
+    const msg=document.getElementById('inviteMsg');
+    setTimeout(()=>input.focus(),60);
+    form.addEventListener('submit',async e=>{
+      e.preventDefault(); msg.textContent='';
+      if(!input.value.trim()){msg.textContent='请输入邀请码';return}
+      btn.disabled=true; btn.textContent='验证中…';
+      try {
+        const h=await digest(input.value);
+        if(ALLOWED.includes(h)) {
+          localStorage.setItem(ACCESS_KEY,h);
+          await loadApp();
+          return;
+        }
+        msg.textContent='邀请码无效，请检查后重试';
+        input.select();
+      } catch(err) {
+        msg.textContent='验证失败，请刷新后重试';
+        console.error(err);
+      }
+      btn.disabled=false; btn.textContent='进入 Clarte';
+    });
+  }
+  const saved=localStorage.getItem(ACCESS_KEY);
+  if(saved && ALLOWED.includes(saved)) loadApp(); else showGate();
+})();
+</script>
+</body>
+</html>
