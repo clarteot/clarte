@@ -29,12 +29,25 @@
 <body>
 <script>
 (() => {
-  const ACCESS_KEY='clarte_beta_access_v1';
-  const ALLOWED=["53faa9c2fe7d4c2439c641711fd998fdc76fc89b93961f91447c1afe6be195bd","f7e4aaaf1a1a452374ccaf33ed53f04f32f07680f5da7ffa654802af7df3cf2b","e24facd9de76ce44935fdafd1bef9bc9b8baf12d4018b9262ceaf2e8536d430d","d2acc0e750c2e21ffbdeed8e0d39a001ff5f863ae8c37640f6f61b298f97feb6","c869e8a9d7a83f11e39bec6e93ecba495fddb2876c60ffd14fb9e7f7f2991b20","7576228b787ddb05f856019c177055b5678a2857e27c47ca1cfac438a7d41fc4","ea990bb1c9e0e4d5c80f5df7d27991a9fa94b6a3fc9e309866417e3c1a590e61","374651527eae285278432ca0b98278420ad66d995c8d6fdcbb834ea8c7be8e34","6e4d2647f84cf8ad3ec1ff5892c0938dcbddd8683937e93369ee6bee83b92f60","863ff4a2d048c7f47f479758aefeb189dc905ac3e2853f0be11b8b5ec2c1bfe2","4e3a7d65fff6c5d6cb666670767b4de1ce60dc1fe2385839b5918041f186144b","c6d91661debb41bdbbb97f5010c04767f5f10b77c9c267c39cee3f157745c1b8","e238a72d9c50d91dd0bae407fa75540d0844d7a4983503e8e4a0e884295fabc0","ce9b19b6c63a535acefd29e3d45a20f1759092e52a37784e17a0d758daf355f8","a2d0de64184f404bd0419d570d883c55f97edd3f27df62ef96d3557c7dcb8551","021a1186885e71a10588b7f19871402c7a0f5ebb2ff90888b0a1fba20e7be4b6"];
+  const API='https://clarte-invite-api.13136138332.workers.dev';
+  const ACCESS_TOKEN_KEY='clarte_beta_access_token_v2';
+  const LEGACY_ACCESS_KEY='clarte_beta_access_v1';
   const PAYLOADS=['payload-v23-fixed-01.txt','payload-v23-fixed-02.txt','payload-v23-fixed-03.txt','payload-v23-fixed-04.txt','payload-v23-fixed-05.txt','payload-v23-fixed-06.txt','payload-v23-fixed-07.txt','payload-v23-fixed-08.txt','payload-v23-fixed-09a.txt','payload-v23-fixed-09b.txt','payload-v23-fixed-10a.txt','payload-v23-fixed-10b.txt','payload-v23-fixed-11a.txt','payload-v23-fixed-11b.txt','payload-v23-fixed-12a.txt','payload-v23-fixed-12b.txt','payload-v23-fixed-13a.txt','payload-v23-fixed-13b.txt'];
-  const hex=buf=>Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  const canonical=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-  async function digest(s){return hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical(s))))}
+
+  async function apiPost(path, body, token=''){
+    const headers={'content-type':'application/json'};
+    if(token) headers.authorization=`Bearer ${token}`;
+    const response=await fetch(`${API}${path}`,{
+      method:'POST',
+      headers,
+      body:JSON.stringify(body||{}),
+      cache:'no-store'
+    });
+    let data={};
+    try{data=await response.json()}catch{}
+    return {ok:response.ok,status:response.status,data};
+  }
+
   async function loadApp(){
     document.body.innerHTML='<div class="loading">正在打开 Clarte…</div>';
     try{
@@ -42,9 +55,22 @@
       const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
       const html=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
       document.open();document.write(html);document.close();
-    }catch(e){document.body.innerHTML='<div class="loading">Clarte 加载失败，请刷新页面重试。</div>';console.error(e)}
+    }catch(e){
+      document.body.innerHTML='<div class="loading">Clarte 加载失败，请刷新页面重试。</div>';
+      console.error(e);
+    }
   }
-  function showGate(){
+
+  function inviteError(error,status){
+    if(error==='invite_invalid') return '邀请码无效，请检查后重试';
+    if(error==='invite_expired') return '邀请码已过期';
+    if(error==='invite_already_used' || status===409) return '这个邀请码已经使用过了';
+    if(error==='origin_not_allowed') return '当前访问地址暂未授权';
+    if(status>=500) return '服务暂时不可用，请稍后重试';
+    return '验证失败，请稍后重试';
+  }
+
+  function showGate(message=''){
     document.body.innerHTML=`<main class="gate"><section class="gate-card">
       <p class="eyebrow">CLARTE · PRIVATE BETA</p>
       <h1>欢迎来到 Clarte</h1>
@@ -53,15 +79,59 @@
         <label for="inviteCode">邀请码</label>
         <input id="inviteCode" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" placeholder="CLARTE-XXXX-XXXX">
         <button id="inviteBtn" type="submit">进入 Clarte</button>
-        <p class="msg" id="inviteMsg"></p>
+        <p class="msg" id="inviteMsg">${message}</p>
       </form>
-      <p class="note">验证成功后，本设备会记住访问权限。清除浏览器网站数据后需要重新输入。</p>
+      <p class="note">邀请码由 Clarte 服务端验证。验证成功后，本设备会保存访问凭证；凭证失效或访问被撤销时需要重新验证。</p>
     </section></main>`;
-    const form=document.getElementById('inviteForm'),input=document.getElementById('inviteCode'),btn=document.getElementById('inviteBtn'),msg=document.getElementById('inviteMsg');
+    const form=document.getElementById('inviteForm');
+    const input=document.getElementById('inviteCode');
+    const btn=document.getElementById('inviteBtn');
+    const msg=document.getElementById('inviteMsg');
     setTimeout(()=>input.focus(),60);
-    form.addEventListener('submit',async e=>{e.preventDefault();msg.textContent='';if(!input.value.trim()){msg.textContent='请输入邀请码';return}btn.disabled=true;btn.textContent='验证中…';try{const h=await digest(input.value);if(ALLOWED.includes(h)){localStorage.setItem(ACCESS_KEY,h);await loadApp();return}msg.textContent='邀请码无效，请检查后重试';input.select()}catch(err){msg.textContent='验证失败，请刷新后重试';console.error(err)}btn.disabled=false;btn.textContent='进入 Clarte'});
+    form.addEventListener('submit',async e=>{
+      e.preventDefault();
+      msg.textContent='';
+      const code=input.value.trim();
+      if(!code){msg.textContent='请输入邀请码';return}
+      btn.disabled=true;btn.textContent='验证中…';
+      try{
+        const result=await apiPost('/redeem',{code});
+        if(result.ok && result.data?.token){
+          localStorage.setItem(ACCESS_TOKEN_KEY,result.data.token);
+          localStorage.removeItem(LEGACY_ACCESS_KEY);
+          await loadApp();
+          return;
+        }
+        msg.textContent=inviteError(result.data?.error,result.status);
+        input.select();
+      }catch(err){
+        msg.textContent='无法连接验证服务，请检查网络后重试';
+        console.error(err);
+      }
+      btn.disabled=false;btn.textContent='进入 Clarte';
+    });
   }
-  const saved=localStorage.getItem(ACCESS_KEY);if(saved&&ALLOWED.includes(saved))loadApp();else showGate();
+
+  async function start(){
+    const token=localStorage.getItem(ACCESS_TOKEN_KEY);
+    if(!token){
+      localStorage.removeItem(LEGACY_ACCESS_KEY);
+      showGate();
+      return;
+    }
+    document.body.innerHTML='<div class="loading">正在验证访问权限…</div>';
+    try{
+      const result=await apiPost('/verify',{},token);
+      if(result.ok){await loadApp();return}
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      showGate(result.data?.error==='access_revoked'?'当前访问权限已被撤销，请重新输入邀请码。':'访问凭证已失效，请重新输入邀请码。');
+    }catch(err){
+      showGate('暂时无法连接验证服务，请稍后重试。');
+      console.error(err);
+    }
+  }
+
+  start();
 })();
 </script>
 </body>
