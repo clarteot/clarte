@@ -45,19 +45,55 @@
       if(localStorage.getItem(key)===null) localStorage.setItem(key,'[]');
     }
   }
+async function apiPost(path, body, token=''){
+  const headers={
+    'content-type':'application/json'
+  };
 
-  async function apiPost(path, body, token=''){
-    const headers={'content-type':'application/json'};
-    if(token) headers.authorization=`Bearer ${token}`;
+  if(token){
+    headers.authorization=`Bearer ${token}`;
+  }
+
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),10000);
+
+  try{
     const response=await fetch(`${API}${path}`,{
       method:'POST',
       headers,
       body:JSON.stringify(body||{}),
-      cache:'no-store'
+      cache:'no-store',
+      signal:controller.signal
     });
+
+    clearTimeout(timer);
+
+    const text=await response.text();
+
     let data={};
-    try{data=await response.json()}catch{}
-    return {ok:response.ok,status:response.status,data};
+    try{
+      data=JSON.parse(text);
+    }catch{}
+
+    return {
+      ok:response.ok,
+      status:response.status,
+      data
+    };
+
+  }catch(err){
+    clearTimeout(timer);
+    console.error('apiPost error:',err);
+
+    return {
+      ok:false,
+      status:0,
+      data:{
+        error:err.message
+      }
+    };
+  }
+}
   }
 
   async function loadApp(){
