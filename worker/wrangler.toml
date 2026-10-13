@@ -1,5 +1,5 @@
 name = "clarte-invite-api"
-main = "src/index.js"
+main = "src/index-safe.js"
 compatibility_date = "2026-10-13"
 
 [vars]
