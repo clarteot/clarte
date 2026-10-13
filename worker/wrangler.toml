@@ -5,3 +5,8 @@ compatibility_date = "2026-10-13"
 [vars]
 ALLOWED_ORIGINS = "https://clarteot.github.io"
 SESSION_DAYS = "90"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "clarte-invites"
+database_id = "0a9f5a1b-ac32-474a-a812-d14da3004af4"
