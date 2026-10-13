@@ -25,9 +25,9 @@
     .msg{min-height:20px;margin:10px 0 0;color:var(--danger);font-size:12px}
     .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.toolbar h2{font-size:18px;margin:0}.toolbar-actions{display:flex;gap:8px}
     table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:12px 10px;border-top:1px solid #edf2f1;text-align:left;vertical-align:middle}th{color:var(--muted);font-size:11px;font-weight:700}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.pill{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:11px;background:var(--soft)}.pill.off{background:#f5eeee;color:#9a6560}.muted{color:var(--muted)}
-    .new-code{display:none;margin-top:14px;background:var(--soft);border-radius:14px;padding:14px}.new-code.show{display:block}.code-line{display:flex;justify-content:space-between;gap:12px;align-items:center}.code{font-size:18px;font-weight:800;letter-spacing:.05em}.small{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.6}
+    .new-code{display:none;margin-top:14px;background:var(--soft);border-radius:14px;padding:14px}.new-code.show{display:block}.code-line{display:flex;justify-content:space-between;gap:12px;align-items:center}.code-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.code{font-size:18px;font-weight:800;letter-spacing:.05em}.small{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.6}
     .empty{text-align:center;color:var(--muted);padding:28px 0}.mobile-list{display:none}
-    @media(max-width:760px){.wrap{padding:24px 14px 50px}.top{align-items:flex-start;flex-direction:column}.grid{grid-template-columns:1fr}.table-wrap{display:none}.mobile-list{display:block}.invite-item{padding:14px 0;border-top:1px solid #edf2f1}.invite-head{display:flex;justify-content:space-between;gap:10px}.invite-meta{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}.invite-actions{margin-top:10px}.invite-actions button{height:36px}.login-row{flex-direction:column}}
+    @media(max-width:760px){.wrap{padding:24px 14px 50px}.top{align-items:flex-start;flex-direction:column}.grid{grid-template-columns:1fr}.table-wrap{display:none}.mobile-list{display:block}.invite-item{padding:14px 0;border-top:1px solid #edf2f1}.invite-head{display:flex;justify-content:space-between;gap:10px}.invite-meta{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}.invite-actions{margin-top:10px}.invite-actions button{height:36px}.login-row{flex-direction:column}.code-line{align-items:flex-start;flex-direction:column}.code-actions{width:100%;justify-content:flex-start}}
   </style>
 </head>
 <body>
@@ -36,6 +36,7 @@
 (() => {
   const API='https://clarte-invite-api.13136138332.workers.dev';
   const TOKEN_KEY='clarte_admin_token_session';
+  const CLARTE_URL='https://clarteot.github.io/clarte/';
   const app=document.getElementById('app');
   let adminToken=sessionStorage.getItem(TOKEN_KEY)||'';
   let invites=[];
@@ -85,7 +86,7 @@
           <div><label>过期时间（可选）</label><input id="expires" type="datetime-local"></div>
           <button id="createBtn">生成邀请码</button>
         </div>
-        <div class="new-code ${lastCreatedCode?'show':''}" id="newCode"><div class="code-line"><div><div class="muted" style="font-size:11px;margin-bottom:4px">新邀请码</div><div class="code mono" id="codeText">${esc(lastCreatedCode)}</div></div><button class="secondary" id="copyBtn">复制</button></div><div class="small">邀请码明文只会在创建时返回一次。复制并保存后，数据库只保留哈希和末四位提示。</div></div>
+        <div class="new-code ${lastCreatedCode?'show':''}" id="newCode"><div class="code-line"><div><div class="muted" style="font-size:11px;margin-bottom:4px">新邀请码</div><div class="code mono" id="codeText">${esc(lastCreatedCode)}</div></div><div class="code-actions"><button class="secondary" id="copyBtn">复制邀请码</button><button class="secondary" id="copyInviteBtn">复制邀请文案</button></div></div><div class="small">邀请码明文只会在创建时返回一次。复制并保存后，数据库只保留哈希和末四位提示。</div></div>
         <p class="msg" id="createMsg"></p>
       </section>
       <section class="card">
@@ -102,6 +103,7 @@
     document.getElementById('refresh').onclick=load;
     document.getElementById('createBtn').onclick=createInvite;
     const copyBtn=document.getElementById('copyBtn');if(copyBtn&&lastCreatedCode)copyBtn.onclick=copyCode;
+    const copyInviteBtn=document.getElementById('copyInviteBtn');if(copyInviteBtn&&lastCreatedCode)copyInviteBtn.onclick=copyInviteText;
     document.querySelectorAll('.revoke').forEach(b=>b.onclick=()=>revokeInvite(b.dataset.id));
   }
 
@@ -128,7 +130,15 @@
   async function copyCode(){
     if(!lastCreatedCode)return;
     await navigator.clipboard.writeText(lastCreatedCode);
-    const btn=document.getElementById('copyBtn');if(btn){btn.textContent='已复制';setTimeout(()=>{if(btn.isConnected)btn.textContent='复制'},1200)}
+    const btn=document.getElementById('copyBtn');if(btn){btn.textContent='已复制';setTimeout(()=>{if(btn.isConnected)btn.textContent='复制邀请码'},1200)}
+  }
+
+  async function copyInviteText(){
+    if(!lastCreatedCode)return;
+    const text=`你好～这是 Clarte 的内测邀请：\n\n访问地址：${CLARTE_URL}\n邀请码：${lastCreatedCode}\n\n打开链接后输入邀请码即可进入。邀请码仅供本次内测使用，请不要转发给其他人。`;
+    await navigator.clipboard.writeText(text);
+    const btn=document.getElementById('copyInviteBtn');
+    if(btn){btn.textContent='已复制文案';setTimeout(()=>{if(btn.isConnected)btn.textContent='复制邀请文案'},1400)}
   }
 
   async function revokeInvite(id){
