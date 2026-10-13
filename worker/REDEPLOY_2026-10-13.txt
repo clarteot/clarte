@@ -1,0 +1,1 @@
+Force redeploy so the active Worker picks up the current D1 binding and secrets.
