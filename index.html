@@ -64,7 +64,26 @@
     ensureFreshAppStorage();
     document.body.innerHTML='<div class="loading">正在打开 Clarte…</div>';
     try{
-      const encoded=(await Promise.all(PAYLOADS.map(p=>fetch(p,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error(r.status);return r.text()})))).join('').replace(/\s+/g,'');
+      const encoded=(await Promise.all(
+  PAYLOADS.map(async p=>{
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),10000);
+
+    try{
+      const r=await fetch(p,{
+        cache:'no-store',
+        signal:controller.signal
+      });
+
+      if(!r.ok) throw Error(p+' '+r.status);
+
+      return await r.text();
+
+    }finally{
+      clearTimeout(timer);
+    }
+  })
+)).join('').replace(/\s+/g,'');
       const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
       const html=new TextDecoder().decode(pako.ungzip(bytes));
       document.open();document.write(html);document.close();
