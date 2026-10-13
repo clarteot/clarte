@@ -39,6 +39,7 @@
   const app=document.getElementById('app');
   let adminToken=sessionStorage.getItem(TOKEN_KEY)||'';
   let invites=[];
+  let lastCreatedCode='';
 
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt=s=>{if(!s)return '—';const d=new Date(s);return Number.isNaN(d.getTime())?'—':d.toLocaleString('zh-CN',{hour12:false})};
@@ -84,7 +85,7 @@
           <div><label>过期时间（可选）</label><input id="expires" type="datetime-local"></div>
           <button id="createBtn">生成邀请码</button>
         </div>
-        <div class="new-code" id="newCode"><div class="code-line"><div><div class="muted" style="font-size:11px;margin-bottom:4px">新邀请码</div><div class="code mono" id="codeText"></div></div><button class="secondary" id="copyBtn">复制</button></div><div class="small">邀请码明文只会在创建时返回一次。复制并保存后，数据库只保留哈希和末四位提示。</div></div>
+        <div class="new-code ${lastCreatedCode?'show':''}" id="newCode"><div class="code-line"><div><div class="muted" style="font-size:11px;margin-bottom:4px">新邀请码</div><div class="code mono" id="codeText">${esc(lastCreatedCode)}</div></div><button class="secondary" id="copyBtn">复制</button></div><div class="small">邀请码明文只会在创建时返回一次。复制并保存后，数据库只保留哈希和末四位提示。</div></div>
         <p class="msg" id="createMsg"></p>
       </section>
       <section class="card">
@@ -100,6 +101,7 @@
     document.getElementById('logout').onclick=()=>{adminToken='';sessionStorage.removeItem(TOKEN_KEY);renderLogin();};
     document.getElementById('refresh').onclick=load;
     document.getElementById('createBtn').onclick=createInvite;
+    const copyBtn=document.getElementById('copyBtn');if(copyBtn&&lastCreatedCode)copyBtn.onclick=copyCode;
     document.querySelectorAll('.revoke').forEach(b=>b.onclick=()=>revokeInvite(b.dataset.id));
   }
 
@@ -117,11 +119,16 @@
     btn.disabled=true;btn.textContent='生成中…';msg.textContent='';
     try{
       const data=await api('/admin/invites',{method:'POST',body:JSON.stringify({label,maxUses,expiresAt})});
-      const code=data.invite?.code||'';document.getElementById('codeText').textContent=code;document.getElementById('newCode').classList.add('show');
-      document.getElementById('copyBtn').onclick=async()=>{await navigator.clipboard.writeText(code);document.getElementById('copyBtn').textContent='已复制';setTimeout(()=>document.getElementById('copyBtn').textContent='复制',1200)};
-      await load();setTimeout(()=>{const n=document.getElementById('newCode');if(n){n.classList.add('show');document.getElementById('codeText').textContent=code;}},0);
+      lastCreatedCode=data.invite?.code||'';
+      await load();
     }catch(e){msg.textContent=e.status===401?'管理员令牌已失效':'生成失败，请稍后重试';}
     btn.disabled=false;btn.textContent='生成邀请码';
+  }
+
+  async function copyCode(){
+    if(!lastCreatedCode)return;
+    await navigator.clipboard.writeText(lastCreatedCode);
+    const btn=document.getElementById('copyBtn');if(btn){btn.textContent='已复制';setTimeout(()=>{if(btn.isConnected)btn.textContent='复制'},1200)}
   }
 
   async function revokeInvite(id){
