@@ -1,0 +1,15 @@
+name = "clarte-invite-api"
+main = "src/index.js"
+compatibility_date = "2026-10-13"
+
+[vars]
+ALLOWED_ORIGINS = "https://clarteot.github.io"
+SESSION_DAYS = "90"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "clarte-invites"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Do NOT put AUTH_SECRET or ADMIN_TOKEN here.
+# Set both as Cloudflare Worker secrets.
