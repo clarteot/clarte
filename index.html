@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+  <script src="vendor/pako.min.js"></script>
+  <script src="invite-policy.js?v=frontend-20261014"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow,noarchive">
@@ -30,62 +31,38 @@
 <body>
 <script>
 (() => {
-  const API='https://clarte-invite-api.13136138332.workers.dev';
-  const ACCESS_TOKEN_KEY='clarte_beta_access_token_v2';
-  const LEGACY_ACCESS_KEY='clarte_beta_access_v1';
+  const ACCESS_KEY='clarte_frontend_access_v1';
+  const policy=window.CLARTE_INVITE_POLICY;
+  let expiryTimer;
   const PAYLOADS=["payload-v26-3-01.txt", "payload-v26-3-02.txt", "payload-v26-3-03.txt", "payload-v26-3-04.txt", "payload-v26-3-05.txt", "payload-v26-3-06.txt", "payload-v26-3-07.txt", "payload-v26-3-08.txt", "payload-v26-3-09.txt", "payload-v26-3-10.txt", "payload-v26-3-11.txt", "payload-v26-3-12.txt", "payload-v26-3-13.txt", "payload-v26-3-14.txt", "payload-v26-3-15.txt"];
   const CLARTE_RELEASE="26.3";
   const PAYLOAD_BASE64_LENGTH=89340;
 
-async function apiPost(path, body, token=''){
-  const headers={
-    'content-type':'application/json'
-  };
-
-  if(token){
-    headers.authorization=`Bearer ${token}`;
+  function policyValid(){
+    return policy && typeof policy.version==='string' && Array.isArray(policy.hashes) && Number.isFinite(Date.parse(policy.expiresAt));
   }
-
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),10000);
-
-  try{
-    const response=await fetch(`${API}${path}`,{
-      method:'POST',
-      headers,
-      body:JSON.stringify(body||{}),
-      cache:'no-store',
-      signal:controller.signal
-    });
-
-    clearTimeout(timer);
-
-    const text=await response.text();
-
-    let data={};
-    try{
-      data=JSON.parse(text);
-    }catch{}
-
-    return {
-      ok:response.ok,
-      status:response.status,
-      data
-    };
-
-  }catch(err){
-    clearTimeout(timer);
-    console.error('apiPost error:',err);
-
-    return {
-      ok:false,
-      status:0,
-      data:{
-        error:err.message
-      }
-    };
+  function expired(){ return Date.now()>=Date.parse(policy.expiresAt); }
+  function readAccess(){ try{return JSON.parse(localStorage.getItem(ACCESS_KEY));}catch{return null;} }
+  function allowed(access){return policyValid() && !expired() && access && access.version===policy.version && policy.hashes.includes(access.hash);}
+  function normalize(code){return code.trim().toUpperCase().replace(/[‐‑‒–—−－]/g,'-');}
+  async function digest(code){
+    const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(code));
+    return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
   }
-}
+  function guardExpiry(){
+    if(!expired() || document.getElementById('clarteExpiryNotice'))return;
+    // Keep the application DOM and unsaved form content intact.
+    const overlay=document.createElement('div');
+    overlay.id='clarteExpiryNotice';
+    overlay.setAttribute('role','alertdialog');
+    overlay.setAttribute('aria-modal','true');
+    overlay.tabIndex=-1;
+    overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#f6f8faf5;display:flex;align-items:center;justify-content:center;padding:24px;color:#314844;font:16px/1.8 sans-serif;text-align:center';
+    overlay.textContent='本批邀请码已到期，请联系 Clarte 获取新的访问方式。当前页面内容已保留，请勿清除网站数据。';
+    document.body.appendChild(overlay);
+    overlay.focus();
+    overlay.addEventListener('keydown',e=>{e.preventDefault();e.stopPropagation();});
+  }
 
   async function loadApp(){
     document.body.innerHTML='<div class="loading">正在打开 Clarte…</div>';
@@ -114,19 +91,15 @@ async function apiPost(path, body, token=''){
       const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
       const html=new TextDecoder().decode(pako.ungzip(bytes));
       document.open();document.write(html);document.close();
+      clearInterval(expiryTimer);
+      expiryTimer=setInterval(guardExpiry,30000);
+      window.addEventListener("pageshow",guardExpiry);
+      document.addEventListener("visibilitychange",guardExpiry);
+      guardExpiry();
     }catch(e){
       document.body.innerHTML='<div class="loading">Clarte 加载失败，请刷新页面重试。</div>';
       console.error(e);
     }
-  }
-
-  function inviteError(error,status){
-    if(error==='invite_invalid') return '邀请码无效，请检查后重试';
-    if(error==='invite_expired') return '邀请码已过期';
-    if(error==='invite_already_used' || status===409) return '这个邀请码已经使用过了';
-    if(error==='origin_not_allowed') return '当前访问地址暂未授权';
-    if(status>=500) return '服务暂时不可用，请稍后重试';
-    return '验证失败，请稍后重试';
   }
 
   function showGate(message=''){
@@ -140,7 +113,7 @@ async function apiPost(path, body, token=''){
         <button id="inviteBtn" type="submit">进入 Clarte</button>
         <p class="msg" id="inviteMsg">${message}</p>
       </form>
-      <p class="note">邀请码由 Clarte 服务端验证。验证成功后，本设备会保存访问凭证；凭证失效或访问被撤销时需要重新验证。</p>
+      <p class="note">邀请码在当前浏览器内校验，可在不同设备和浏览器重复使用。有效期至北京时间 2027 年 4 月 14 日 13:18:31；到期后需要新的邀请码。</p>
     </section></main>`;
     const form=document.getElementById('inviteForm');
     const input=document.getElementById('inviteCode');
@@ -150,21 +123,23 @@ async function apiPost(path, body, token=''){
     form.addEventListener('submit',async e=>{
       e.preventDefault();
       msg.textContent='';
-      const code=input.value.trim();
+      const code=normalize(input.value);
       if(!code){msg.textContent='请输入邀请码';return}
       btn.disabled=true;btn.textContent='验证中…';
       try{
-        const result=await apiPost('/redeem',{code});
-        if(result.ok && result.data?.token){
-          localStorage.setItem(ACCESS_TOKEN_KEY,result.data.token);
-          localStorage.removeItem(LEGACY_ACCESS_KEY);
-          await loadApp();
-          return;
+        if(!policyValid())throw Error('policy_unavailable');
+        if(expired()){msg.textContent='本批邀请码已过期，请联系 Clarte';}
+        else{
+          const hash=await digest(code);
+          if(policy.hashes.includes(hash)){
+            try{localStorage.setItem(ACCESS_KEY,JSON.stringify({version:policy.version,hash}));}catch{}
+            await loadApp();return;
+          }
+          msg.textContent='邀请码无效，请检查后重试';
         }
-        msg.textContent=inviteError(result.data?.error,result.status);
         input.select();
       }catch(err){
-        msg.textContent='无法连接验证服务，请检查网络后重试';
+        msg.textContent='本地验证组件未能加载，请刷新页面或使用较新版本的浏览器';
         console.error(err);
       }
       btn.disabled=false;btn.textContent='进入 Clarte';
@@ -172,22 +147,10 @@ async function apiPost(path, body, token=''){
   }
 
   async function start(){
-    const token=localStorage.getItem(ACCESS_TOKEN_KEY);
-    if(!token){
-      localStorage.removeItem(LEGACY_ACCESS_KEY);
-      showGate();
-      return;
-    }
-    document.body.innerHTML='<div class="loading">正在验证访问权限…</div>';
-    try{
-      const result=await apiPost('/verify',{},token);
-      if(result.ok){await loadApp();return}
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-      showGate(result.data?.error==='access_revoked'?'当前访问权限已被撤销，请重新输入邀请码。':'访问凭证已失效，请重新输入邀请码。');
-    }catch(err){
-      showGate('暂时无法连接验证服务，请稍后重试。');
-      console.error(err);
-    }
+    if(!policyValid()){showGate('验证规则加载失败，请刷新页面重试');return;}
+    if(expired()){showGate('本批邀请码已过期，请联系 Clarte');return;}
+    if(allowed(readAccess())){await loadApp();return;}
+    showGate();
   }
 
   start();

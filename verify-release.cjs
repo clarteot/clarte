@@ -54,23 +54,46 @@ assert.equal(crypto.createHash('sha256').update(html).digest('hex'),manifest.app
 assert.ok(html.includes('/* V26.3 · 所有弹窗统一居中显示 */'));
 assert.ok(!html.includes('clartePreviewBadge'));
 const entry=fs.readFileSync(root+'/index.html','utf8');
-assert.ok(entry.includes("const API='https://clarte-invite-api.13136138332.workers.dev'"));
-assert.ok(entry.includes("apiPost('/redeem'"));assert.ok(entry.includes("apiPost('/verify'"));
-assert.ok(!entry.includes('    ensureFreshAppStorage();'));
-new vm.Script(entry.match(/<script>([\s\S]*?)<\/script>/)[1]);
-async function checkInvite(existingToken,valid){
-  const storage=new Map(existingToken?[['clarte_beta_access_token_v2',existingToken]]:[]),body={innerHTML:''},calls=[];
-  let written='';
-  const el={addEventListener(){},focus(){}};
-  const context=vm.createContext({localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},document:{body,getElementById:()=>el,open(){},write:s=>written=s,close(){}},console,AbortController,setTimeout:()=>0,clearTimeout(){},Uint8Array,TextDecoder,atob,pako:{ungzip:b=>zlib.gunzipSync(b)},fetch:async(url,options)=>{
-    calls.push({url,options});
-    if(url.endsWith('/verify'))return {ok:valid,status:valid?200:401,text:async()=>JSON.stringify(valid?{}:{error:'access_revoked'})};
-    return {ok:true,status:200,text:async()=>fs.readFileSync(root+'/'+url,'utf8')};
-  }});
-  vm.runInContext(entry.match(/<script>([\s\S]*?)<\/script>/)[1],context);
+
+assert.ok(!/workers\.dev|apiPost|\/redeem|\/verify/.test(entry));
+assert.ok(entry.includes('vendor/pako.min.js'));
+const policyContext={window:{}};
+vm.runInNewContext(fs.readFileSync(root+'/invite-policy.js','utf8'),policyContext);
+const livePolicy=policyContext.window.CLARTE_INVITE_POLICY;
+assert.equal(livePolicy.hashes.length,51);
+assert.equal(new Set(livePolicy.hashes).size,51);
+assert.equal(livePolicy.expiresAt,'2027-04-14T13:18:31+08:00');
+const gateScript=entry.match(/<script>([\s\S]*?)<\/script>/)[1];
+new vm.Script(gateScript);
+const testCode='CLARTE-TESTAB-TESTCD';
+const hash=crypto.createHash('sha256').update(testCode).digest('hex');
+async function checkInvite({saved,code,expired=false,badPolicy=false,denyStorage=false}={}){
+  const policy={version:'test',expiresAt:expired?'2020-01-01T00:00:00Z':'2099-01-01T00:00:00Z',hashes:[hash]};
+  const storage=new Map(Object.entries(original));
+  if(saved)storage.set('clarte_frontend_access_v1',saved);
+  let written='';const calls=[],els={};
+  for(const id of ['inviteForm','inviteCode','inviteBtn','inviteMsg'])els[id]={value:'',textContent:'',addEventListener(type,fn){this[type]=fn},focus(){},select(){}};
+  const body={innerHTML:''};
+  const context=vm.createContext({window:{CLARTE_INVITE_POLICY:badPolicy?null:policy,addEventListener(){}},crypto:crypto.webcrypto,localStorage:{getItem:k=>{if(denyStorage)throw Error('blocked');return storage.get(k)||null},setItem:(k,v)=>{if(denyStorage)throw Error('blocked');storage.set(k,v)},removeItem:k=>storage.delete(k)},document:{body,getElementById:id=>els[id],open(){},write:s=>written=s,close(){},addEventListener(){}},console,AbortController,setTimeout:()=>0,clearTimeout(){},setInterval:()=>0,clearInterval(){},Uint8Array,TextDecoder,TextEncoder,atob,pako:{ungzip:b=>zlib.gunzipSync(b)},fetch:async(url)=>{calls.push(url);assert.ok(!url.includes('://'));return {ok:true,status:200,text:async()=>fs.readFileSync(root+'/'+url,'utf8')};}});
+  vm.runInContext(gateScript,context);
   await new Promise(r=>setImmediate(r));
-  if(!existingToken){assert.equal(calls.length,0);assert.ok(body.innerHTML.includes('inviteForm'));assert.equal(written,'');}
-  else if(valid){assert.equal(calls[0].options.headers.authorization,'Bearer '+existingToken);assert.equal(written,html);assert.equal(storage.get('clarte_beta_access_token_v2'),existingToken);}
-  else{assert.equal(storage.has('clarte_beta_access_token_v2'),false);assert.equal(calls.length,1);assert.equal(written,'');assert.ok(body.innerHTML.includes('已被撤销'));}
+  if(code){els.inviteCode.value=code;await els.inviteForm.submit({preventDefault(){}});}
+  const valid=!badPolicy&&!expired&&(code?.trim().toUpperCase()===testCode||saved===JSON.stringify({version:'test',hash}));
+  if(valid){assert.equal(written,html);assert.equal(calls.length,manifest.payloads.length);}
+  else{assert.equal(written,'');assert.equal(calls.length,0);assert.ok(body.innerHTML.includes('inviteForm'));}
+  for(const [k,v] of Object.entries(original))assert.equal(storage.get(k),v,'preserve '+k);
 }
-Promise.resolve().then(()=>checkInvite('',false)).then(()=>checkInvite('existing-token',true)).then(()=>checkInvite('revoked-token',false)).then(()=>console.log('PASS: app boot, old collections, remaining quantity, pen/ink links, backup time, brand sync, linked filters, detail/form routes, legacy migration, empty collections, gzip/SHA-256, centered modal CSS, invite required/valid/revoked paths')).catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{
+  await checkInvite(); // old server token must not silently grant front-end access
+  await checkInvite({code:testCode});
+  await checkInvite({code:'  '+testCode.toLowerCase()+'  '});
+  await checkInvite({code:'CLARTE-INVALID-CODE'});
+  await checkInvite({saved:JSON.stringify({version:'test',hash})});
+  await checkInvite({saved:'broken json'});
+  await checkInvite({saved:JSON.stringify({version:'previous',hash})});
+  await checkInvite({code:testCode,expired:true});
+  await checkInvite({saved:JSON.stringify({version:'test',hash}),expired:true});
+  await checkInvite({code:testCode,badPolicy:true});
+  await checkInvite({code:testCode,denyStorage:true});
+  console.log('PASS: app/data regressions, 51 unique hashes, local valid/invalid/expired/missing-policy gates, repeated use, remembered access, old-token isolation, blocked storage, no external validation calls');
+})().catch(e=>{console.error(e);process.exitCode=1});
