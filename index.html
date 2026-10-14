@@ -3,6 +3,7 @@
 <head>
   <script src="vendor/pako.min.js"></script>
   <script src="invite-policy.js?v=frontend-20261014"></script>
+  <script src="release-patch-v26-5-2.js?v=26.5.2"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow,noarchive">
@@ -34,8 +35,8 @@
   const ACCESS_KEY='clarte_frontend_access_v1';
   const policy=window.CLARTE_INVITE_POLICY;
   let expiryTimer;
-  const PAYLOADS=["payload-v26-4-01.txt", "payload-v26-4-02.txt", "payload-v26-4-03.txt", "payload-v26-4-04.txt", "payload-v26-4-05.txt", "payload-v26-4-06.txt", "payload-v26-4-07.txt", "payload-v26-4-08.txt", "payload-v26-4-09.txt", "payload-v26-4-10.txt", "payload-v26-4-11.txt", "payload-v26-4-12.txt", "payload-v26-4-13.txt", "payload-v26-4-14.txt", "payload-v26-4-15.txt", "payload-v26-4-16.txt"];
-  const CLARTE_RELEASE="26.4";
+  const PAYLOADS=["payload-v26-4-01.txt","payload-v26-4-02.txt","payload-v26-4-03.txt","payload-v26-4-04.txt","payload-v26-4-05.txt","payload-v26-4-06.txt","payload-v26-4-07.txt","payload-v26-4-08.txt","payload-v26-4-09.txt","payload-v26-4-10.txt","payload-v26-4-11.txt","payload-v26-4-12.txt","payload-v26-4-13.txt","payload-v26-4-14.txt","payload-v26-4-15.txt","payload-v26-4-16.txt"];
+  const CLARTE_RELEASE="26.5.2";
   const PAYLOAD_BASE64_LENGTH=90560;
 
   function policyValid(){
@@ -51,7 +52,6 @@
   }
   function guardExpiry(){
     if(!expired() || document.getElementById('clarteExpiryNotice'))return;
-    // Keep the application DOM and unsaved form content intact.
     const overlay=document.createElement('div');
     overlay.id='clarteExpiryNotice';
     overlay.setAttribute('role','alertdialog');
@@ -67,29 +67,26 @@
   async function loadApp(){
     document.body.innerHTML='<div class="loading">正在打开 Clarte…</div>';
     try{
+      if(typeof window.CLARTE_RELEASE_PATCH!=='function' || window.CLARTE_RELEASE_PATCH_VERSION!=='26.5.2'){
+        throw Error('Clarte release patch unavailable');
+      }
       const encoded=(await Promise.all(
-  PAYLOADS.map(async p=>{
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),10000);
-
-    try{
-      const r=await fetch(p,{
-        cache:'no-store',
-        signal:controller.signal
-      });
-
-      if(!r.ok) throw Error(p+' '+r.status);
-
-      return await r.text();
-
-    }finally{
-      clearTimeout(timer);
-    }
-  })
-)).join('').replace(/\s+/g,'');
+        PAYLOADS.map(async p=>{
+          const controller=new AbortController();
+          const timer=setTimeout(()=>controller.abort(),10000);
+          try{
+            const r=await fetch(p,{cache:'no-store',signal:controller.signal});
+            if(!r.ok) throw Error(p+' '+r.status);
+            return await r.text();
+          }finally{
+            clearTimeout(timer);
+          }
+        })
+      )).join('').replace(/\s+/g,'');
       if(encoded.length!==PAYLOAD_BASE64_LENGTH) throw Error('Clarte bundle length mismatch');
       const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
-      const html=new TextDecoder().decode(pako.ungzip(bytes));
+      let html=new TextDecoder().decode(pako.ungzip(bytes));
+      html=window.CLARTE_RELEASE_PATCH(html);
       document.open();document.write(html);document.close();
       clearInterval(expiryTimer);
       expiryTimer=setInterval(guardExpiry,30000);
@@ -158,4 +155,3 @@
 </script>
 </body>
 </html>
-
