@@ -33,18 +33,10 @@
   const API='https://clarte-invite-api.13136138332.workers.dev';
   const ACCESS_TOKEN_KEY='clarte_beta_access_token_v2';
   const LEGACY_ACCESS_KEY='clarte_beta_access_v1';
-  const APP_DATA_KEYS=[
-    'clarte_preview_paper_v2_20261012',
-    'clarte_preview_ink_v2_20261012',
-    'clarte_preview_pen_v1_20261012'
-  ];
-  const PAYLOADS=['payload-v23-fixed-01.txt','payload-v23-fixed-02.txt','payload-v23-fixed-03.txt','payload-v23-fixed-04.txt','payload-v23-fixed-05.txt','payload-v23-fixed-06.txt','payload-v23-fixed-07.txt','payload-v23-fixed-08.txt','payload-v23-fixed-09a.txt','payload-v23-fixed-09b.txt','payload-v23-fixed-10a.txt','payload-v23-fixed-10b.txt','payload-v23-fixed-11a.txt','payload-v23-fixed-11b.txt','payload-v23-fixed-12a.txt','payload-v23-fixed-12b.txt','payload-v23-fixed-13a.txt','payload-v23-fixed-13b.txt'];
+  const PAYLOADS=["payload-v26-3-01.txt", "payload-v26-3-02.txt", "payload-v26-3-03.txt", "payload-v26-3-04.txt", "payload-v26-3-05.txt", "payload-v26-3-06.txt", "payload-v26-3-07.txt", "payload-v26-3-08.txt", "payload-v26-3-09.txt", "payload-v26-3-10.txt", "payload-v26-3-11.txt", "payload-v26-3-12.txt", "payload-v26-3-13.txt", "payload-v26-3-14.txt", "payload-v26-3-15.txt"];
+  const CLARTE_RELEASE="26.3";
+  const PAYLOAD_BASE64_LENGTH=89340;
 
-  function ensureFreshAppStorage(){
-    for(const key of APP_DATA_KEYS){
-      if(localStorage.getItem(key)===null) localStorage.setItem(key,'[]');
-    }
-  }
 async function apiPost(path, body, token=''){
   const headers={
     'content-type':'application/json'
@@ -96,7 +88,6 @@ async function apiPost(path, body, token=''){
 }
 
   async function loadApp(){
-    ensureFreshAppStorage();
     document.body.innerHTML='<div class="loading">正在打开 Clarte…</div>';
     try{
       const encoded=(await Promise.all(
@@ -119,6 +110,7 @@ async function apiPost(path, body, token=''){
     }
   })
 )).join('').replace(/\s+/g,'');
+      if(encoded.length!==PAYLOAD_BASE64_LENGTH) throw Error('Clarte bundle length mismatch');
       const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
       const html=new TextDecoder().decode(pako.ungzip(bytes));
       document.open();document.write(html);document.close();
@@ -203,3 +195,4 @@ async function apiPost(path, body, token=''){
 </script>
 </body>
 </html>
+

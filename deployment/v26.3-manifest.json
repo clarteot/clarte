@@ -1,0 +1,39 @@
+{
+  "release": "26.3",
+  "source_sha256": "ccc29b08a0aa9d086492994715f7763caa1a6001616dffb6cc16fc9acd2e8585",
+  "app_sha256": "73d691d6bfb4a21118df203bb2483d561456a5f8b37d78e01665d361bbcdf0e9",
+  "base64_length": 89340,
+  "payloads": [
+    "payload-v26-3-01.txt",
+    "payload-v26-3-02.txt",
+    "payload-v26-3-03.txt",
+    "payload-v26-3-04.txt",
+    "payload-v26-3-05.txt",
+    "payload-v26-3-06.txt",
+    "payload-v26-3-07.txt",
+    "payload-v26-3-08.txt",
+    "payload-v26-3-09.txt",
+    "payload-v26-3-10.txt",
+    "payload-v26-3-11.txt",
+    "payload-v26-3-12.txt",
+    "payload-v26-3-13.txt",
+    "payload-v26-3-14.txt",
+    "payload-v26-3-15.txt"
+  ],
+  "storage_keys": {
+    "STORAGE_KEY": "paper_keeper_v1",
+    "REMAINING_SYNC_MIGRATION_KEY": "paper_keeper_remaining_synced_v1_5_7",
+    "INK_STORAGE_KEY": "ink_keeper_v1",
+    "INK_SERIES_MIGRATION_KEY": "ink_keeper_series_migrated_v1_6_6",
+    "INK_NUMBER_MIGRATION_KEY": "ink_number_migrated_v1_6_5",
+    "INK_COLOR_FAMILY_MIGRATION_KEY": "ink_color_family_migrated_v1_7_0",
+    "INK_SERIES_OPTIONS_MIGRATION_KEY": "ink_series_options_migrated_v1_7_3",
+    "INK_COLLAPSE_STORAGE_KEY": "ink_collapsed_brands_v1_7_29",
+    "PAPER_COLLAPSE_STORAGE_KEY": "paper_collapsed_groups_v1_8_3",
+    "BACKUP_TIME_STORAGE_KEY": "clarte_last_backup_time_v1",
+    "PEN_STORAGE_KEY": "pen_keeper_v1",
+    "PEN_COLLAPSE_STORAGE_KEY": "pen_collapsed_brands_v1",
+    "TODAY_SWIPE_HISTORY_KEY": "clarte_today_swipe_history_v1",
+    "JOURNAL_BRAND_CONFIG_STORAGE_KEY": "clarte_journal_brand_config_v1"
+  }
+}
