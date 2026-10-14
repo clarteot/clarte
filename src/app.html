@@ -685,6 +685,69 @@ form{display:grid;gap:15px}fieldset{border:0;padding:0;margin:0;background:#fff;
 }
 
 </style>
+
+<style id="clarte-v264-safari-compat-patch">
+/* V26.4 · Safari select + modal compatibility patch */
+select{
+  -webkit-appearance:none!important;
+  -moz-appearance:none!important;
+  appearance:none!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23718887' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;
+  background-position:right 12px center!important;
+  background-size:14px 8px!important;
+  padding-right:34px!important;
+  text-indent:0;
+}
+.filter-row select{
+  height:42px;
+  min-height:42px;
+  padding-top:0!important;
+  padding-bottom:0!important;
+  line-height:normal;
+}
+.form-grid select{min-height:42px}
+select:disabled{opacity:.6}
+select::-ms-expand{display:none}
+
+.sheet-backdrop{
+  position:fixed!important;
+  top:0!important;
+  right:0!important;
+  bottom:0!important;
+  left:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:9999!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:22px 14px!important;
+  -webkit-backdrop-filter:blur(4px);
+  backdrop-filter:blur(4px);
+}
+.sheet-backdrop:not(.hidden){
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+.choice-sheet,.detail-sheet,.form-sheet{
+  width:calc(100% - 28px)!important;
+  max-width:720px!important;
+  max-height:calc(100vh - 44px)!important;
+  position:relative!important;
+  z-index:10000!important;
+}
+.brand-config-sheet{
+  width:calc(100% - 28px)!important;
+  max-width:620px!important;
+  max-height:calc(100vh - 44px)!important;
+  position:relative!important;
+  z-index:10000!important;
+}
+.hidden{display:none!important}
+</style>
+
 </head>
 <body>
 
@@ -3570,5 +3633,41 @@ refreshPenFilters(); renderPens(); refreshInkFilters(); renderInk(); refreshFilt
 navigate('pen');
 
 </script>
+
+<script id="clarte-v264-safari-modal-fallback">
+(()=>{
+  const isSafari=/^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(navigator.userAgent);
+  if(!isSafari)return;
+  const makeVisible=id=>{
+    const el=document.getElementById(id);
+    if(!el||el.classList.contains('hidden'))return;
+    el.style.display='flex';
+    el.style.visibility='visible';
+    el.style.opacity='1';
+    el.style.pointerEvents='auto';
+    el.style.zIndex='9999';
+  };
+  const quick=document.getElementById('quickAddBtn');
+  if(quick){
+    quick.addEventListener('click',()=>setTimeout(()=>{
+      const backdrop=document.getElementById('addChoiceBackdrop');
+      if(backdrop&&backdrop.classList.contains('hidden')){
+        try{if(typeof window.openAddChoice==='function')window.openAddChoice();}catch(err){console.error('Clarte v26.4 Safari quick-add fallback',err);}
+      }
+      makeVisible('addChoiceBackdrop');
+    },0),true);
+  }
+  document.querySelectorAll('.journal-config-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>setTimeout(()=>{
+      const backdrop=document.getElementById('brandConfigBackdrop');
+      if(backdrop&&backdrop.classList.contains('hidden')){
+        try{if(typeof window.openJournalBrandConfig==='function')window.openJournalBrandConfig(btn.dataset.configType||'pen');}catch(err){console.error('Clarte v26.4 Safari brand-config fallback',err);}
+      }
+      makeVisible('brandConfigBackdrop');
+    },0),true);
+  });
+})();
+</script>
+
 </body>
 </html>
