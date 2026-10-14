@@ -1,0 +1,218 @@
+name: Deploy Clarte v26.4 Safari compatibility patch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-v26-4-safari.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current production
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch Safari compatibility and prepare v26.4 builder
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, re
+
+          app_path = Path('src/app.html')
+          app = app_path.read_text()
+          if 'clarte-v264-safari-compat-patch' in app:
+              raise SystemExit('v26.4 Safari patch already exists')
+          if '/* V26.3 · 所有弹窗统一居中显示 */' not in app:
+              raise SystemExit('Expected v26.3 modal CSS marker not found')
+          if 'id="quickAddBtn"' not in app or 'id="brandConfigBackdrop"' not in app:
+              raise SystemExit('Expected production modal controls not found')
+
+          css = r'''
+          <style id="clarte-v264-safari-compat-patch">
+          /* V26.4 · Safari select + modal compatibility patch */
+          select{
+            -webkit-appearance:none!important;
+            -moz-appearance:none!important;
+            appearance:none!important;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23718887' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important;
+            background-repeat:no-repeat!important;
+            background-position:right 12px center!important;
+            background-size:14px 8px!important;
+            padding-right:34px!important;
+            text-indent:0;
+          }
+          .filter-row select{
+            height:42px;
+            min-height:42px;
+            padding-top:0!important;
+            padding-bottom:0!important;
+            line-height:normal;
+          }
+          .form-grid select{min-height:42px}
+          select:disabled{opacity:.6}
+          select::-ms-expand{display:none}
+
+          .sheet-backdrop{
+            position:fixed!important;
+            top:0!important;
+            right:0!important;
+            bottom:0!important;
+            left:0!important;
+            width:100%!important;
+            height:100%!important;
+            z-index:9999!important;
+            align-items:center!important;
+            justify-content:center!important;
+            padding:22px 14px!important;
+            -webkit-backdrop-filter:blur(4px);
+            backdrop-filter:blur(4px);
+          }
+          .sheet-backdrop:not(.hidden){
+            display:flex!important;
+            visibility:visible!important;
+            opacity:1!important;
+            pointer-events:auto!important;
+          }
+          .choice-sheet,.detail-sheet,.form-sheet{
+            width:calc(100% - 28px)!important;
+            max-width:720px!important;
+            max-height:calc(100vh - 44px)!important;
+            position:relative!important;
+            z-index:10000!important;
+          }
+          .brand-config-sheet{
+            width:calc(100% - 28px)!important;
+            max-width:620px!important;
+            max-height:calc(100vh - 44px)!important;
+            position:relative!important;
+            z-index:10000!important;
+          }
+          .hidden{display:none!important}
+          </style>
+          '''
+
+          fallback = r'''
+          <script id="clarte-v264-safari-modal-fallback">
+          (()=>{
+            const isSafari=/^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(navigator.userAgent);
+            if(!isSafari)return;
+            const makeVisible=id=>{
+              const el=document.getElementById(id);
+              if(!el||el.classList.contains('hidden'))return;
+              el.style.display='flex';
+              el.style.visibility='visible';
+              el.style.opacity='1';
+              el.style.pointerEvents='auto';
+              el.style.zIndex='9999';
+            };
+            const quick=document.getElementById('quickAddBtn');
+            if(quick){
+              quick.addEventListener('click',()=>setTimeout(()=>{
+                const backdrop=document.getElementById('addChoiceBackdrop');
+                if(backdrop&&backdrop.classList.contains('hidden')){
+                  try{if(typeof window.openAddChoice==='function')window.openAddChoice();}catch(err){console.error('Clarte v26.4 Safari quick-add fallback',err);}
+                }
+                makeVisible('addChoiceBackdrop');
+              },0),true);
+            }
+            document.querySelectorAll('.journal-config-btn').forEach(btn=>{
+              btn.addEventListener('click',()=>setTimeout(()=>{
+                const backdrop=document.getElementById('brandConfigBackdrop');
+                if(backdrop&&backdrop.classList.contains('hidden')){
+                  try{if(typeof window.openJournalBrandConfig==='function')window.openJournalBrandConfig(btn.dataset.configType||'pen');}catch(err){console.error('Clarte v26.4 Safari brand-config fallback',err);}
+                }
+                makeVisible('brandConfigBackdrop');
+              },0),true);
+            });
+          })();
+          </script>
+          '''
+
+          app = app.replace('</head>', css + '\n</head>', 1)
+          app = app.replace('</body>', fallback + '\n</body>', 1)
+          app_path.write_text(app)
+
+          old_manifest = json.loads(Path('deployment/v26.3-manifest.json').read_text())
+          new_manifest = dict(old_manifest)
+          new_manifest['release'] = '26.4'
+          Path('deployment/v26.4-manifest.json').write_text(json.dumps(new_manifest, ensure_ascii=False, indent=2) + '\n')
+
+          build_path = Path('build-production.py')
+          build = build_path.read_text()
+          build = build.replace('payload-v26-3-', 'payload-v26-4-')
+          build = build.replace("deployment/v26.3-manifest.json", "deployment/v26.4-manifest.json")
+          build = build.replace('Built Clarte 26.3:', 'Built Clarte 26.4:')
+          if 'payload-v26-4-' not in build or 'deployment/v26.4-manifest.json' not in build:
+              raise SystemExit('Failed to update production builder to v26.4')
+          build_path.write_text(build)
+
+          index_path = Path('index.html')
+          index = index_path.read_text()
+          if 'const CLARTE_RELEASE="26.3";' not in index:
+              raise SystemExit('Expected v26.3 release marker not found in index.html')
+          index = index.replace('const CLARTE_RELEASE="26.3";', 'const CLARTE_RELEASE="26.4";', 1)
+          index_path.write_text(index)
+          PY
+
+      - name: Build v26.4 production payload
+        shell: bash
+        run: |
+          rm -f payload-v26-4-*.txt
+          python build-production.py
+          python - <<'PY'
+          from pathlib import Path
+          import base64, gzip, hashlib, json, re
+
+          app = Path('src/app.html').read_bytes()
+          manifest_path = Path('deployment/v26.4-manifest.json')
+          manifest = json.loads(manifest_path.read_text())
+          digest = hashlib.sha256(app).hexdigest()
+          manifest['release'] = '26.4'
+          manifest['source_sha256'] = digest
+          manifest['app_sha256'] = digest
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
+
+          index = Path('index.html').read_text()
+          if 'const CLARTE_RELEASE="26.4";' not in index:
+              raise SystemExit('index release marker was not updated')
+          names = re.search(r'const PAYLOADS=(\[.*?\]);', index).group(1)
+          if 'payload-v26-4-' not in names or 'payload-v26-3-' in names:
+              raise SystemExit('index payload list is not v26.4-only')
+
+          encoded = ''.join(Path(name).read_text() for name in manifest['payloads']).replace('\n','').replace('\r','').replace(' ','')
+          rebuilt = gzip.decompress(base64.b64decode(encoded, validate=True))
+          if rebuilt != app:
+              raise SystemExit('v26.4 payload round-trip verification failed')
+          if len(encoded) != manifest['base64_length']:
+              raise SystemExit('v26.4 payload length mismatch')
+
+          old = json.loads(Path('deployment/v26.3-manifest.json').read_text())
+          if old.get('storage_keys') != manifest.get('storage_keys'):
+              raise SystemExit('Storage keys changed unexpectedly')
+          if Path('invite-policy.js').read_text() == '':
+              raise SystemExit('invite-policy.js unexpectedly empty')
+          print('Verified v26.4:', digest, len(app), 'bytes,', len(manifest['payloads']), 'payloads')
+          PY
+
+      - name: Validate diff and commit release
+        shell: bash
+        run: |
+          git diff --check
+          git rm .github/workflows/deploy-v26-4-safari.yml
+          git add src/app.html build-production.py index.html deployment/v26.4-manifest.json payload-v26-4-*.txt
+          git status --short
+          if git diff --cached --name-only | grep -E 'invite-policy\.js|payload-v26-3-|deployment/v26\.3-manifest\.json'; then
+            echo 'Protected v26.3/invite files changed unexpectedly'
+            exit 1
+          fi
+          git config user.name 'clarteot-release-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'Release v26.4 Safari compatibility patch'
+          git push origin HEAD:main
