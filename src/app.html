@@ -748,6 +748,11 @@ select::-ms-expand{display:none}
 .hidden{display:none!important}
 </style>
 
+<style>
+/* Profile card logo: crop the supplied image white margin in layout only. */
+.clarte-profile-logo{position:relative;overflow:hidden;flex-shrink:0}
+.clarte-profile-logo img{position:absolute;left:-14%;top:-14%;width:128%;height:128%;max-width:none;object-fit:cover;display:block}
+</style>
 </head>
 <body>
 
@@ -964,7 +969,7 @@ select::-ms-expand{display:none}
 
       <section class="view" id="profileView">
         <div class="profile-backup-hero">
-          <div class="profile-backup-icon" aria-hidden="true">↥</div>
+          <div class="profile-backup-icon clarte-profile-logo" aria-hidden="true"><img src="assets/clarte-profile-logo.jpg" alt="" width="1254" height="1254"></div>
           <div class="profile-backup-content">
             <p class="eyebrow">LOCAL DATA · BACKUP</p>
             <h2>记得备份你的 Clarte</h2>
@@ -989,7 +994,7 @@ select::-ms-expand{display:none}
 
         <div class="profile-archive-card">
           <div class="profile-archive-head">
-            <div class="profile-mark">C</div>
+            <div class="profile-mark clarte-profile-logo" aria-hidden="true"><img src="assets/clarte-profile-logo.jpg" alt="" width="1254" height="1254"></div>
             <div class="profile-archive-copy">
               <strong>Clarte</strong>
               <p>把喜欢的笔、墨和纸，好好收在一起。</p>

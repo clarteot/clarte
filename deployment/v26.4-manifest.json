@@ -1,8 +1,8 @@
 {
   "release": "26.4",
   "source_sha256": "404e80673c45d370728995ec2ba7f068471b54f918ece19b6def673a23c7dd85",
-  "app_sha256": "404e80673c45d370728995ec2ba7f068471b54f918ece19b6def673a23c7dd85",
-  "base64_length": 90560,
+  "app_sha256": "23f98676edcd95cf006b3e0bef6d7ff1b19306fa92abca53d640d2b82180c850",
+  "base64_length": 90776,
   "payloads": [
     "payload-v26-4-01.txt",
     "payload-v26-4-02.txt",
