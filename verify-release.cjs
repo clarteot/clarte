@@ -46,7 +46,28 @@ const restored=boot({'clarte_preview_paper_v2_20261012':JSON.stringify(paper),'c
 assert.equal(restored.run('papers[0].remaining'),37,'known legacy key migration');
 const deleted=boot({paper_keeper_v1:'[]','clarte_preview_paper_v2_20261012':JSON.stringify(paper)});
 assert.equal(deleted.run('papers.length'),0,'intentional empty collection stays empty');
-const manifest=JSON.parse(fs.readFileSync(root+'/deployment/v26.3-manifest.json'));
+
+const updated=boot({paper_keeper_v1:JSON.stringify([{id:'p-old',itemType:'活页',brand:'Crena',quantity:100,remaining:25,tags:['旧标签'],review:'旧评价',notes:'原备注'}])});
+updated.run("openForm('p-old');setQuantityValue(137)");
+assert.equal(updated.run('readForm().quantity'),137);
+assert.equal(updated.run('readForm().remaining'),25);
+assert.equal(updated.run('readForm().review'),'旧评价');
+assert.equal(updated.run("stockText({quantity:137,remaining:25})"),'137');
+assert.equal(updated.run("inkHexColor('#abc')"),'#aabbcc');
+assert.equal(updated.run("inkHexColor('绿色')"),'');
+assert.equal(updated.run("inkHexColor('#fff;display:none')"),'');
+assert.equal(updated.run("inkTheme({baseColor:'#000000'}).text"),'#FFFFFF');
+assert.equal(updated.run("inkTheme({baseColor:'#ffffff'}).text"),'#152321');
+for(const expression of ["inkCardHTML({id:'x',name:'墨水',sheen:'有',sheenColor:'绿色'})","penCardHTML({id:'x'})","cardHTML({id:'x',itemType:'活页',tags:[]})"]){const card=updated.run(expression);assert.ok(card.includes('card-secondary'));assert.ok(card.includes('心里'));}
+assert.ok(!html.includes('clarte_ink_preview_20261017_'));
+assert.ok(!html.includes('id="remaining"'));
+assert.ok(!html.includes('id="tags"'));
+assert.ok(!html.includes('id="review"'));
+assert.ok(!html.includes('id="inkOxidation"'));
+assert.ok(!html.includes('id="inkPaperPerformance"'));
+assert.equal(updated.run("normalizeBatchHeader('价格')"),'购入价格');
+assert.equal(updated.run("normalizeBatchHeader('笔尖规格')"),'笔尖粗细');
+const manifest=JSON.parse(fs.readFileSync(root+'/deployment/v26.6-manifest.json'));
 const encoded=manifest.payloads.map(p=>fs.readFileSync(root+'/'+p,'utf8')).join('');
 assert.equal(encoded.length,manifest.base64_length);
 assert.equal(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString(),html);
