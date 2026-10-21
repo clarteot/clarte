@@ -34,9 +34,9 @@
   const ACCESS_KEY='clarte_frontend_access_v1';
   const policy=window.CLARTE_INVITE_POLICY;
   let expiryTimer;
-  const PAYLOADS=["payload-v26-6-01.txt", "payload-v26-6-02.txt", "payload-v26-6-03.txt", "payload-v26-6-04.txt", "payload-v26-6-05.txt", "payload-v26-6-06.txt", "payload-v26-6-07.txt", "payload-v26-6-08.txt", "payload-v26-6-09.txt", "payload-v26-6-10.txt", "payload-v26-6-11.txt", "payload-v26-6-12.txt", "payload-v26-6-13.txt", "payload-v26-6-14.txt", "payload-v26-6-15.txt", "payload-v26-6-16.txt"];
-  const CLARTE_RELEASE="26.6";
-  const PAYLOAD_BASE64_LENGTH=90800;
+  const PAYLOADS=["payload-v26-7-01.txt", "payload-v26-7-02.txt", "payload-v26-7-03.txt", "payload-v26-7-04.txt", "payload-v26-7-05.txt", "payload-v26-7-06.txt", "payload-v26-7-07.txt", "payload-v26-7-08.txt", "payload-v26-7-09.txt", "payload-v26-7-10.txt", "payload-v26-7-11.txt", "payload-v26-7-12.txt", "payload-v26-7-13.txt", "payload-v26-7-14.txt", "payload-v26-7-15.txt", "payload-v26-7-16.txt"];
+  const CLARTE_RELEASE="26.7";
+  const PAYLOAD_BASE64_LENGTH=91956;
 
   function policyValid(){
     return policy && typeof policy.version==='string' && Array.isArray(policy.hashes) && Number.isFinite(Date.parse(policy.expiresAt));

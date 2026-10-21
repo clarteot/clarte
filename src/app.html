@@ -792,6 +792,10 @@ select::-ms-expand{display:none}
 .ink-card[style*="--custom-ink-text"] .card-secondary{color:var(--custom-ink-text)}
 .ink-card[style*="--custom-ink-text:#FFFFFF"] .card-secondary{border-top-color:rgba(255,255,255,.2)}
 @media(max-width:560px){.pen-card,.ink-card,#paperList .paper-card{height:auto;min-height:140px}.pen-card .card-secondary,.ink-card .card-secondary,.paper-card .card-secondary{font-size:9px}}
+</style><style>
+#paperList .brand-card-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+</style><style>
+#paperList .paper-title-stack{padding-right:0}
 </style></head>
 <body>
 
@@ -944,7 +948,7 @@ select::-ms-expand{display:none}
             <h3>下载导入模板</h3>
             <p>模板字段与系统一致，品牌、纸种、规格、克重、颜色、内页样式等已配置下拉选项。</p>
           </div>
-          <a class="primary-btn batch-action" href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,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" download="Clarte纸张批量导入模板.xlsx">下载 Excel 模板</a>
+          <a class="primary-btn batch-action" href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,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" download="Clarte纸张批量导入模板.xlsx">下载 Excel 模板</a>
         </div>
 
         <div class="batch-card">
@@ -964,7 +968,7 @@ select::-ms-expand{display:none}
 
         <div class="batch-note">
           <strong>填写提示</strong>
-          <p>“定页类型”只在品类为定页时填写；“打孔状态”只在品类为活页时填写。数量目前使用 100 / 500 两个标准选项。</p>
+          <p>“名称”只在品类为定页时填写；“打孔状态”只在品类为活页时填写。</p>
         </div>
       </section>
 
@@ -1347,11 +1351,11 @@ select::-ms-expand{display:none}
                 <option value="雪胧月">雪胧月</option>
                 <option value="奶油闪电 C">奶油闪电 C</option>
                 <option value="星火纸">星火纸</option>
-                <option value="其他">其他 / 自定义</option>
+                <option value="银行纸">银行纸</option><option value="PAPER β">PAPER β</option><option value="其他">其他 / 自定义</option>
               </select>
             </label>
 <label id="paperTypeCustomWrap" class="hidden">自定义纸种<input id="paperTypeCustom" placeholder="输入纸种" /></label>
-<label id="notebookTypeWrap" class="hidden full">定页类型<input id="notebookType" placeholder="例如 TN 标准内芯、几年月日记本" /></label>
+<label id="notebookTypeWrap" class="hidden full">名称<input id="notebookType" placeholder="例如读书笔记、软皮手账本、日记本" /></label>
 <label>规格
               <select id="spec">
                 <option value="">请选择规格</option>
@@ -1363,7 +1367,7 @@ select::-ms-expand{display:none}
                 <option value="B5">B5</option>
                 <option value="A4">A4</option>
                 <option value="TN 标准">TN 标准</option>
-                <option value="其他">其他 / 自定义</option>
+                <option value="TN 护照">TN 护照</option><option value="FC">FC</option><option value="A7">A7</option><option value="其他">其他 / 自定义</option>
               </select>
             </label>
 <label id="specCustomWrap" class="hidden">自定义规格<input id="specCustom" placeholder="输入规格" /></label>
@@ -1374,24 +1378,12 @@ select::-ms-expand{display:none}
                 <option value="68g">68g</option>
                 <option value="84g">84g</option>
                 <option value="90g">90g</option>
-                <option value="其他">其他 / 自定义</option>
+                <option value="66g">66g</option><option value="其他">其他 / 自定义</option>
               </select>
             </label>
 <label id="gsmCustomWrap" class="hidden">自定义克重<input id="gsmCustom" placeholder="输入克重，例如 70g" /></label>
-<label>颜色
-              <select id="paperColor">
-                <option value="">请选择颜色</option>
-                <option value="白色">⚪ 白色</option>
-                <option value="紫藤色">🟣 紫藤色</option>
-                <option value="海蓝色">🔵 海蓝色</option>
-                <option value="银色">⚪ 银色</option>
-                <option value="咖啡色">🟤 咖啡色</option>
-                <option value="薄荷绿">🟢 薄荷绿</option>
-                <option value="抹茶嫩芽色">🟢 抹茶嫩芽色</option>
-                <option value="其他">其他 / 自定义</option>
-              </select>
-            </label>
-<label id="paperColorCustomWrap" class="hidden">自定义颜色<input id="paperColorCustom" placeholder="输入颜色" /></label>
+<label>颜色<input id="paperColor" placeholder="自由填写颜色，例如奶油白、浅蓝色" /></label>
+
 <label>内页样式
               <select id="layout">
                 <option value="">请选择内页样式</option>
@@ -1406,7 +1398,7 @@ select::-ms-expand{display:none}
                 <option value="法文格">法文格</option>
                 <option value="事项计划">事项计划</option>
                 <option value="空白">空白</option>
-                <option value="其他">其他 / 自定义</option>
+                <option value="点阵">点阵</option><option value="其他">其他 / 自定义</option>
               </select>
             </label>
 <label id="layoutCustomWrap" class="hidden">自定义内页样式<input id="layoutCustom" placeholder="输入内页样式" /></label>
@@ -1544,11 +1536,11 @@ const PEN_SELECT_PRESETS = {
 
 const SELECT_PRESETS = {
   brand:['Crena','杉友'],
-  spec:['A6P','A6奇葩','A6','A5','B6','B5','A4','TN 标准'],
+  spec:['A6P','A6奇葩','A6','A5','B6','B5','A4','TN 标准','TN 护照','FC','A7'],
   channel:['小红书','KTT','淘宝','拼多多','京东','线下'],
-  layout:['7.5mm横线','7.7mm横线','9mm序号横线','7.8mm竖线格','8.4mm竖线格','10.5mm宽竖线格','3.5mm方格','4mm方格','法文格','事项计划','空白'],
-  paperType:['星虹纸 R2','白橄纸','雪胧月','奶油闪电 C','星火纸'],
-  gsm:['52g','68g','84g','90g'],
+  layout:['7.5mm横线','7.7mm横线','9mm序号横线','7.8mm竖线格','8.4mm竖线格','10.5mm宽竖线格','3.5mm方格','4mm方格','法文格','事项计划','空白','点阵'],
+  paperType:['星虹纸 R2','白橄纸','雪胧月','奶油闪电 C','星火纸','银行纸','PAPER β'],
+  gsm:['52g','68g','84g','90g','66g'],
   paperColor:['白色','紫藤色','海蓝色','银色','咖啡色','薄荷绿','抹茶嫩芽色']
 };
 
@@ -1827,7 +1819,7 @@ function stockText(p){return p.quantity===''||p.quantity==null?'':String(p.quant
 function cardHTML(p){
   const subtitle = p.itemType==='定页' && p.notebookType && p.paperType ? `<div class="paper-meta"><span>${esc(p.notebookType)}</span></div>` : '';
   const locationLabel = (p.storageLocation||'').trim() || '心里';
-  const tags = [p.itemType,p.punched,locationLabel].filter(Boolean);
+  const tags = [p.itemType,p.punched,stockText(p),locationLabel].filter(Boolean);
   const theme = cardColorTheme(p.paperColor);
   return `<article class="paper-card" data-id="${esc(p.id)}" style="--card-tint:${theme.bg};--card-border:${theme.border};--dot:${theme.dot}">
     <div class="paper-card-top">
@@ -1843,7 +1835,6 @@ function cardHTML(p){
         ${subtitle}
         <div class="paper-meta">${cardMetaParts(p).map(x=>`<span>${x===p.paperColor?`<i class="color-dot"></i>`:''}${esc(x)}</span>`).join('<span>·</span>')}</div>
       </div>
-      ${stockText(p)?`<span class="stock-pill">${esc(stockText(p))}</span>`:''}
     </div>
     ${cardFooterHTML(tags)}
   </article>`;
@@ -1855,7 +1846,7 @@ function bindPaperGroupToggles(root){
     const level=btn.dataset.level||'';
     const spec=btn.dataset.spec||'';
     const brand=btn.dataset.brand||'';
-    const key=level==='spec' ? paperSpecCollapseKey(spec) : paperBrandCollapseKey(spec,brand);
+    const key=btn.dataset.key||(level==='spec' ? paperSpecCollapseKey(spec) : paperBrandCollapseKey(spec,brand));
     if(paperCollapsedGroups.has(key)) paperCollapsedGroups.delete(key);
     else paperCollapsedGroups.add(key);
     savePaperCollapsedGroups();
@@ -2080,52 +2071,18 @@ function withinBrandCompare(a,b){
   return String(a.id||'').localeCompare(String(b.id||''),'zh-CN');
 }
 function groupedListHTML(items){
-  const specMap=new Map();
-  items.forEach(p=>{
-    const specKey=p.spec||'其他';
-    if(!specMap.has(specKey)) specMap.set(specKey,[]);
-    specMap.get(specKey).push(p);
-  });
-
-  const specs=[...specMap.keys()].sort((a,b)=>{
-    const ar=a==='其他' ? 999 : specRank(a);
-    const br=b==='其他' ? 999 : specRank(b);
-    if(ar!==br) return ar-br;
-    return a.localeCompare(b,'zh-CN');
-  });
-
-  return specs.map(spec=>{
-    const specItems=specMap.get(spec);
-    const brandMap=new Map();
-    specItems.forEach(p=>{
-      const brandKey=p.brand||'未填写品牌';
-      if(!brandMap.has(brandKey)) brandMap.set(brandKey,[]);
-      brandMap.get(brandKey).push(p);
-    });
-    const brands=[...brandMap.keys()].sort((a,b)=>a.localeCompare(b,'zh-CN'));
-    const brandHTML=brands.map(brand=>{
-      const brandItems=[...brandMap.get(brand)].sort(withinBrandCompare);
-      const brandCollapsed=paperCollapsedGroups.has(paperBrandCollapseKey(spec,brand));
-      return `<section class="brand-group paper-brand-group${brandCollapsed?' is-collapsed':''}">
-        <div class="brand-group-heading">
-          <div class="brand-group-meta"><span>${esc(brand)}</span><small>${brandItems.length} 款</small></div>
-          <button class="paper-collapse-btn" type="button" data-level="brand" data-spec="${esc(spec)}" data-brand="${esc(brand)}" aria-expanded="${brandCollapsed?'false':'true'}" aria-label="${brandCollapsed?`展开${brand}`:`折叠${brand}`}">
-            <i class="collapse-chevron"></i>
-          </button>
-        </div>
-        <div class="brand-card-grid">${brandItems.map(cardHTML).join('')}</div>
-      </section>`;
+  const brandMap=new Map();
+  items.forEach(p=>{const brand=p.brand||'未填写品牌';if(!brandMap.has(brand))brandMap.set(brand,[]);brandMap.get(brand).push(p);});
+  return [...brandMap.keys()].sort((a,b)=>a.localeCompare(b,'zh-CN')).map(brand=>{
+    const rows=brandMap.get(brand),specMap=new Map();
+    rows.forEach(p=>{const spec=p.spec||'其他';if(!specMap.has(spec))specMap.set(spec,[]);specMap.get(spec).push(p);});
+    const body=[...specMap.keys()].sort((a,b)=>specRank(a)-specRank(b)||a.localeCompare(b,'zh-CN')).map(spec=>{
+      const entries=specMap.get(spec).slice().sort((a,b)=>String(a.paperType||'').localeCompare(String(b.paperType||''),'zh-CN')||withinBrandCompare(a,b));
+      const key='paper-v2-spec|'+JSON.stringify([brand,spec]),collapsed=paperCollapsedGroups.has(key);
+      return `<section class="brand-group paper-brand-group${collapsed?' is-collapsed':''}"><div class="brand-group-heading"><div class="brand-group-meta"><span>${esc(spec)}</span><small>${entries.length} 款</small></div><button class="paper-collapse-btn" type="button" data-key="${esc(key)}" aria-expanded="${!collapsed}" aria-label="${collapsed?'展开':'折叠'}${esc(spec)}"><i class="collapse-chevron"></i></button></div><div class="brand-card-grid">${entries.map(cardHTML).join('')}</div></section>`;
     }).join('');
-    const specCollapsed=paperCollapsedGroups.has(paperSpecCollapseKey(spec));
-    return `<section class="spec-group${specCollapsed?' is-collapsed':''}">
-      <div class="spec-group-heading">
-        <div class="spec-group-meta"><h3>${esc(spec)}</h3><small>${specItems.length} 款</small></div>
-        <button class="paper-collapse-btn" type="button" data-level="spec" data-spec="${esc(spec)}" aria-expanded="${specCollapsed?'false':'true'}" aria-label="${specCollapsed?`展开${spec}`:`折叠${spec}`}">
-          <i class="collapse-chevron"></i>
-        </button>
-      </div>
-      <div class="spec-group-body">${brandHTML}</div>
-    </section>`;
+    const key='paper-v2-brand|'+brand,collapsed=paperCollapsedGroups.has(key);
+    return `<section class="spec-group${collapsed?' is-collapsed':''}"><div class="spec-group-heading"><div class="spec-group-meta"><h3>${esc(brand)}</h3><small>${rows.length} 款</small></div><button class="paper-collapse-btn" type="button" data-key="${esc(key)}" aria-expanded="${!collapsed}" aria-label="${collapsed?'展开':'折叠'}${esc(brand)}"><i class="collapse-chevron"></i></button></div><div class="spec-group-body">${body}</div></section>`;
   }).join('');
 }
 function renderList(){
@@ -2574,7 +2531,7 @@ function openDetail(id){
       <div class="detail-badges">${tagList.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
     </div>
     <div class="detail-grid">
-      ${detailItem('品类',p.itemType)}${detailItem('品牌',p.brand)}${detailItem('纸种',p.paperType)}${detailItem('定页类型',p.notebookType)}${detailItem('规格',p.spec)}${detailItem('克重',p.gsm)}${detailItem('颜色',p.paperColor)}${detailItem('内页样式',p.layout)}${detailItem('打孔状态',p.punched)}${detailItem('存放位置',locationLabel)}${detailItem('数量',p.quantity!==''?p.quantity:'')}${detailItem('购入价格',p.price!==''?`¥${p.price}`:'')}${detailItem('购入渠道',p.channel)}
+      ${detailItem('品类',p.itemType)}${detailItem('品牌',p.brand)}${detailItem('纸种',p.paperType)}${detailItem('名称',p.notebookType)}${detailItem('规格',p.spec)}${detailItem('克重',p.gsm)}${detailItem('颜色',p.paperColor)}${detailItem('内页样式',p.layout)}${detailItem('打孔状态',p.punched)}${detailItem('存放位置',locationLabel)}${detailItem('数量',p.quantity!==''?p.quantity:'')}${detailItem('购入价格',p.price!==''?`¥${p.price}`:'')}${detailItem('购入渠道',p.channel)}
     </div>
     ${p.notes?`<div class="detail-section"><h3>备注</h3><div class="detail-note">${esc(p.notes)}</div></div>`:''}`;
   $('detailBackdrop').classList.remove('hidden');
@@ -2590,7 +2547,8 @@ function clearForm(){
   $('paperForm').reset(); $('paperId').value='';
   populatePersonalBrandSelect('brand','paper','');
   setPaperTypeForBrand('','');
-  ['spec','gsm','paperColor','channel','layout'].forEach(f=>setSelectOrCustom(f,''));
+  ['spec','gsm','channel','layout'].forEach(f=>setSelectOrCustom(f,''));
+  $('paperColor').value='';
   setQuantityValue('');
   document.querySelector('input[name="itemType"][value="活页"]').checked=true;
   toggleTypeFields();
@@ -2604,10 +2562,11 @@ function openForm(id=''){
     $('paperId').value=p.id;
     document.querySelector(`input[name="itemType"][value="${p.itemType}"]`).checked=true;
     ['notebookType','punched','storageLocation','remaining','price','review','notes'].forEach(k=>{ if($(k)) $(k).value=p[k]??''; });
+    $('paperColor').value=p.paperColor||'';
     setQuantityValue(p.quantity??'');
     populatePersonalBrandSelect('brand','paper',p.brand||'');
     setPaperTypeForBrand(p.brand||'',p.paperType||'');
-    ['spec','gsm','paperColor','channel','layout'].forEach(k=>setSelectOrCustom(k,p[k]??''));
+    ['spec','gsm','channel','layout'].forEach(k=>setSelectOrCustom(k,p[k]??''));
     toggleTypeFields();
   }
   $('formBackdrop').classList.remove('hidden');
@@ -2623,7 +2582,7 @@ function readForm(){
     brand:selectValue('brand'),
     paperType:paperTypeValue(),
     notebookType:itemType==='定页'?$('notebookType').value.trim():'',
-    spec:selectValue('spec'),gsm:selectValue('gsm'),paperColor:selectValue('paperColor'),layout:selectValue('layout'),
+    spec:selectValue('spec'),gsm:selectValue('gsm'),paperColor:$('paperColor').value.trim(),layout:selectValue('layout'),
     punched:itemType==='活页'?$('punched').value:'',
     storageLocation:$('storageLocation').value.trim(),
     quantity:$('quantity').value===''?'':Number($('quantity').value),
@@ -2875,12 +2834,12 @@ async function parseBatchWorkbook(file){
   const headers=(matrix[0]||[]).map(normalizeBatchHeader);
   const expected=['品类','品牌','纸种','规格','克重','颜色','内页样式','打孔状态','数量','存放位置','购入价格','购入渠道'];
   const missing=expected.filter(h=>!headers.includes(h));
-  if(!headers.includes('定页类型') && !headers.includes('本子类型')) missing.splice(3,0,'定页类型');
+  if(!headers.includes('名称')) missing.splice(3,0,'名称');
   if(missing.length) throw new Error(`模板字段不完整：缺少 ${missing.join('、')}`);
   return matrix.slice(1).map((row,i)=>({rowNumber:i+2,values:Object.fromEntries(headers.map((h,j)=>[h,String(row[j]??'').trim()]))}));
 }
 
-function normalizeBatchHeader(value){const v=String(value||'').trim();return ({'价格':'购入价格','笔尖规格':'笔尖粗细','底色':'颜色/色值'})[v]||v;}
+function normalizeBatchHeader(value){const v=String(value||'').trim();return ({'价格':'购入价格','笔尖规格':'笔尖粗细','底色':'颜色/色值','定页类型':'名称','本子类型':'名称'})[v]||v;}
 function toNumberOrBlank(value){
   if(value==='') return '';
   const n=Number(value);
@@ -2904,7 +2863,7 @@ async function batchImportFile(file){
         itemType,
         brand:v['品牌'],
         paperType:v['纸种'],
-        notebookType:itemType==='定页'?(v['定页类型']||v['本子类型']||''):'',
+        notebookType:itemType==='定页'?(v['名称']||''):'',
         spec:v['规格'],
         gsm:v['克重'],
         paperColor:v['颜色'],
@@ -3125,6 +3084,16 @@ function setPaperTypeForBrand(brand,value=''){
     placeholder:'请选择纸种',
     customLabel:'新增纸种 / 自定义'
   });
+  const select=$('paperType');
+  if(brand){
+    for(const paper of ['银行纸','PAPER β']){
+      if(![...select.options].some(o=>o.value===paper))select.innerHTML=select.innerHTML.replace('<option value="其他"',`<option value="${paper}">${paper}</option><option value="其他"`);
+    }
+    if(['银行纸','PAPER β'].includes(value)){
+      select.value=value;$('paperTypeCustom').value='';$('paperTypeCustomWrap').classList.add('hidden');
+    }
+  }
+
 }
 function paperTypeValue(){
   return getSelectedOrCustom('paperType','paperTypeCustom');
@@ -3480,7 +3449,7 @@ $('editBtn').addEventListener('click',()=>{const id=currentDetailId;closeDetail(
 $('deleteBtn').addEventListener('click',deleteCurrent);
 $('saveBtn').addEventListener('click',saveForm);
 document.querySelectorAll('input[name="itemType"]').forEach(r=>r.addEventListener('change',toggleTypeFields));
-['spec','gsm','paperColor','channel','layout'].forEach(f=>$(f).addEventListener('change',()=>toggleCustomField(f)));
+['spec','gsm','channel','layout'].forEach(f=>$(f).addEventListener('change',()=>toggleCustomField(f)));
 $('brand').addEventListener('change',()=>{
   toggleCustomField('brand');
   const brand=$('brand').value==='其他'?'__custom__':$('brand').value;
