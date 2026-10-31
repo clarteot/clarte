@@ -796,6 +796,14 @@ select::-ms-expand{display:none}
 #paperList .brand-card-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 </style><style>
 #paperList .paper-title-stack{padding-right:0}
+</style><style>
+/* Only the pen list card follows its currently linked ink color. */
+.pen-card[style*="--pen-ink-text"] .pen-series,
+.pen-card[style*="--pen-ink-text"] .pen-color,
+.pen-card[style*="--pen-ink-text"] .pen-nib,
+.pen-card[style*="--pen-ink-text"] .card-secondary{color:var(--pen-ink-text)}
+.pen-card[style*="--pen-ink-text:#FFFFFF"] .card-secondary{border-top-color:rgba(255,255,255,.22)}
+.pen-card[style*="--pen-ink-text:#152321"] .card-secondary{border-top-color:rgba(21,35,33,.16)}
 </style></head>
 <body>
 
@@ -1833,7 +1841,7 @@ function cardHTML(p){
           ${cardLayoutTitleFor(p)?`<div class="paper-subtitle">${esc(cardLayoutTitleFor(p))}</div>`:''}
         </div>
         ${subtitle}
-        <div class="paper-meta">${cardMetaParts(p).map(x=>`<span>${x===p.paperColor?`<i class="color-dot"></i>`:''}${esc(x)}</span>`).join('<span>·</span>')}</div>
+        <div class="paper-meta">${cardMetaParts(p).map(x=>`<span>${esc(x)}</span>`).join('<span>·</span>')}</div>
       </div>
     </div>
     ${cardFooterHTML(tags)}
@@ -2387,10 +2395,16 @@ function penInkLabel(p){
   const i=inks.find(x=>x.id===p.inkId);
   return i ? `${i.brand} · ${i.name}` : '已灌墨 · 未关联墨水';
 }
+function penCardTheme(pen){
+  const dot=penTheme(pen).dot;
+  const ink=pen.inkStatus==='已灌墨'?inks.find(i=>i.id===pen.inkId):null;
+  if(ink && inkHexColor(ink.baseColor))return {...inkTheme(ink),dot};
+  return {bg:'#F5F8F7',border:'#DFE9E7',dot};
+}
 function penCardHTML(p){
-  const theme=penTheme(p);
-  return `<article class="pen-card" data-pen-id="${esc(p.id)}" style="--pen-bg:${theme.bg};--pen-border:${theme.border};--pen-dot:${theme.dot}">
-    <div class="pen-card-top"><div class="pen-card-main"><div class="pen-series">${esc(p.series||'未填写系列')}</div><div class="pen-color"><i class="pen-dot"></i>${esc(p.color||'未填写颜色')}</div></div></div>
+  const theme=penCardTheme(p);
+  return `<article class="pen-card" data-pen-id="${esc(p.id)}" style="--pen-bg:${theme.bg};--pen-border:${theme.border};--pen-dot:${theme.dot};${theme.text?`--pen-ink-text:${theme.text}`:''}">
+    <div class="pen-card-top"><div class="pen-card-main"><div class="pen-series">${esc(p.series||'未填写系列')}</div><div class="pen-color">${esc(p.color||'未填写颜色')}</div></div></div>
     <div class="pen-nib">${esc(p.nibType||'未填写笔尖')}${p.nibSpec?` · ${esc(p.nibSpec)}`:''}${p.nibColor?` · ${esc(p.nibColor)}`:''}</div>
     ${cardFooterHTML([penInkLabel(p),cardStorageLocation(p)])}
   </article>`;

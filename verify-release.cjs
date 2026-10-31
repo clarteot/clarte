@@ -78,7 +78,19 @@ assert.ok(Math.abs(grouped.indexOf('data-id="r1"')-grouped.indexOf('data-id="r3"
 const quantityCard=paperUpdate.run("cardHTML({id:'q',quantity:120,storageLocation:'书桌'})");assert.ok(!quantityCard.includes('stock-pill'));assert.ok(!quantityCard.includes('数量'));assert.ok(quantityCard.includes('<span>120</span>'));assert.ok(quantityCard.includes('书桌'));
 assert.equal(paperUpdate.run("normalizeBatchHeader('定页类型')"),'名称');
 assert.ok(!html.includes('数量目前使用 100 / 500 两个标准选项。'));
-const manifest=JSON.parse(fs.readFileSync(root+'/deployment/v26.7-manifest.json'));
+
+const inkPen=boot();inkPen.run("inks=[{id:'hex',baseColor:'#3E7F78'},{id:'text',baseColor:'玫红色',colorFamily:'红色系'},{id:'short',baseColor:' #abc '},{id:'bad',baseColor:'#oops'}]");
+const testPen={id:'p',color:'红色',inkStatus:'已灌墨',inkId:'hex'};
+function testPenTheme(p){return JSON.parse(inkPen.run('JSON.stringify(penCardTheme('+JSON.stringify(p)+'))'));}
+assert.equal(testPenTheme(testPen).bg,'#3E7F78');
+for(const p of [{...testPen,inkStatus:'未灌墨'},{...testPen,inkId:'text'},{...testPen,inkId:'missing'},{...testPen,inkId:''},{...testPen,inkId:'bad'},{...testPen,color:'紫色',inkStatus:'未灌墨'}])assert.equal(testPenTheme(p).bg,'#F5F8F7');
+assert.equal(testPenTheme({...testPen,inkId:'short'}).bg,'#aabbcc');
+inkPen.run("inks[0].baseColor='#000000'");assert.equal(testPenTheme(testPen).text,'#FFFFFF');
+assert.ok(inkPen.run('penCardHTML('+JSON.stringify(testPen)+')').includes('--pen-bg:#000000'));
+inkPen.run("inks[0].baseColor='#ffffff'");assert.equal(testPenTheme(testPen).text,'#152321');
+inkPen.run('inks=[]');assert.equal(testPenTheme(testPen).bg,'#F5F8F7');
+for(const expr of ["penCardHTML({id:'p'})","cardHTML({id:'paper',paperColor:'白色'})"]){const card=inkPen.run(expr);assert.ok(!card.includes('<i class="pen-dot"'));assert.ok(!card.includes('<i class="color-dot"'));}
+const manifest=JSON.parse(fs.readFileSync(root+'/deployment/v26.8-manifest.json'));
 const encoded=manifest.payloads.map(p=>fs.readFileSync(root+'/'+p,'utf8')).join('');
 assert.equal(encoded.length,manifest.base64_length);
 assert.equal(zlib.gunzipSync(Buffer.from(encoded,'base64')).toString(),html);
