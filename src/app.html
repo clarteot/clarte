@@ -806,6 +806,10 @@ select::-ms-expand{display:none}
 .pen-card[style*="--pen-ink-text"] .card-secondary{color:var(--pen-ink-text)}
 .pen-card[style*="--pen-ink-text:#FFFFFF"] .card-secondary{border-top-color:rgba(255,255,255,.22)}
 .pen-card[style*="--pen-ink-text:#152321"] .card-secondary{border-top-color:rgba(21,35,33,.16)}
+/* Compact ink cards: retain natural growth for wrapped names and footer. */
+.ink-card{min-height:106.5px;padding:11px 14px;gap:4px}
+.ink-card .card-secondary{padding-top:5px}
+@media(max-width:560px){.ink-card{min-height:105px;padding:10px;gap:4px}}
 </style></head>
 <body>
 
@@ -1926,9 +1930,10 @@ function formatInkSeriesLabel(series){
   return /系列$/.test(s) ? s : `${s}系列`;
 }
 function inkCardHTML(ink){
-  const theme=inkTheme(ink);
+  const theme={bg:'#F5F8F7',border:'#DFE9E7',dot:'#82A49E'};
   const tags=inkFeatureTags(ink);
   tags.push({text:cardStorageLocation(ink)});
+  if(String(ink.capacity??'').trim())tags.push({text:ink.capacity+'ml'});
   return `<article class="ink-card" data-ink-id="${esc(ink.id)}" style="--ink-bg:${theme.bg};--ink-border:${theme.border};--ink-dot:${theme.dot};${theme.text?`--custom-ink-text:${theme.text}`:''}">
     <div class="ink-card-top">
       <div class="ink-main">
@@ -1936,9 +1941,8 @@ function inkCardHTML(ink){
           <div class="ink-name">${esc(ink.name)}</div>
           <div class="ink-series-text${ink.series?'':' is-empty'}">${ink.series?esc(formatInkSeriesLabel(ink.series)):'&nbsp;'}</div>
         </div>
-        <div class="ink-color">${inkHexColor(ink.baseColor)?'':esc(ink.baseColor)}</div>
       </div>
-      <span class="ink-capacity">${esc(ink.capacity)}ml</span>
+      ${inkBottleHTML(ink,inkHexColor(ink.baseColor)?'墨水颜色：'+ink.baseColor:'未填写有效色值')}
     </div>
     ${cardFooterHTML(tags.map(t=>t.text))}
   </article>`;
@@ -2406,7 +2410,11 @@ function penInkBottle(p){
   const ink=p.inkStatus==='已灌墨'?inks.find(i=>i.id===p.inkId):null;
   const color=ink?inkHexColor(ink.baseColor):'';
   const label=color?'所灌墨水：'+(ink.name||'墨水')+' '+color:(p.inkStatus==='已灌墨'?'所灌墨水未填写有效色值':'未灌墨');
-  return `<svg class="pen-ink-bottle" viewBox="0 0 32 40" role="img" aria-label="${esc(label)}"><title>${esc(label)}</title><g stroke="#71948D" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M10 11v4C4 16 2 19 2 23v11q0 4 4 4h20q4 0 4-4V23c0-4-2-7-8-8v-4Z" fill="${color||'#F5F8F7'}"/><path d="M9 4q0-1 1-1h12q1 0 1 1v7H9Z" fill="#E0E9E6"/><path d="M12 5v4m4-4v4m4-4v4M10 13h12" fill="none"/><path d="M8 22h16v11H8Z" fill="#F5F8F7" fill-opacity=".94"/><path d="m16 23-3 5 3 4 3-4Z" fill="none" stroke-width=".9"/><path d="M16 26v4m0-2.5h.01M5 25v8q0 2 2 2" fill="none" stroke-width=".85"/></g></svg>`;
+  return inkBottleHTML(ink,label);
+}
+function inkBottleHTML(ink,label='墨水颜色'){
+  const color=ink?inkHexColor(ink.baseColor):'';
+  return `<svg class="pen-ink-bottle" viewBox="0 0 32 40" role="img" aria-label="${esc(label)}"><title>${esc(label)}</title><g stroke="#71948D" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M10 11v4C4 16 2 19 2 23v11q0 4 4 4h20q4 0 4-4V23c0-4-2-7-8-8v-4Z" fill="${color||'#F5F8F7'}"/><path d="M9 4q0-1 1-1h12q1 0 1 1v7H9Z" fill="#E0E9E6"/><path d="M12 5v4m4-4v4m4-4v4M10 13h12" fill="none"/><path d="M11 25h10v7H11Z" fill="#F5F8F7" fill-opacity=".94"/><path d="m16 25.8-2 3 2 2.4 2-2.4Z" fill="none" stroke-width=".9"/><path d="M16 27.5v2.5m0-1.5h.01M5 25v8q0 2 2 2" fill="none" stroke-width=".85"/></g></svg>`;
 }
 function penCardHTML(p){
   const theme=penCardTheme(p);
