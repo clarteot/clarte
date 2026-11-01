@@ -684,6 +684,8 @@ form{display:grid;gap:15px}fieldset{border:0;padding:0;margin:0;background:#fff;
   }
 }
 
+.pen-ink-bottle{display:block;flex:0 0 auto;width:31.752px;height:39.69px;margin-left:auto;overflow:visible}
+@media(max-width:560px){.pen-ink-bottle{width:26.504px;height:33.13px}}
 </style>
 
 <style id="clarte-v264-safari-compat-patch">
@@ -1206,6 +1208,7 @@ select::-ms-expand{display:none}
                 <option value="线下">线下</option>
               </select>
             </label>
+<label id="penChannelCustomWrap" class="hidden">自定义购入渠道<input id="penChannelCustom" placeholder="输入购入渠道" /></label>
 <label class="full">存放位置<input id="penStorageLocation" placeholder="未填写默认显示“心里”" /></label>
 <label>是否灌墨<select id="penInkStatus"><option value="未灌墨">未灌墨</option><option value="已灌墨">已灌墨</option></select></label>
 <label id="penInkWrap" class="hidden">当前墨水<select id="penInkId"><option value="">请选择墨水</option></select><span class="ink-choice-note">选项来自“墨”页面的现有记录</span></label></div></fieldset><fieldset><legend>书写表现</legend><div class="form-grid"><label>笔尖类型<select id="penNibType"><option value="">请选择笔尖类型</option><option value="品牌标配">品牌标配</option><option value="弘典中国结">弘典中国结</option><option value="弘典经典">弘典经典</option><option value="匠心优品打磨长刀">匠心优品打磨长刀</option><option value="匠心优品打磨瘦金">匠心优品打磨瘦金</option><option value="笔意阑珊打磨长刀">笔意阑珊打磨长刀</option><option value="胖叔打磨">胖叔打磨</option><option value="字里行间玻璃尖">字里行间玻璃尖</option><option value="其他">其他 / 自定义</option></select></label>
@@ -1537,6 +1540,7 @@ let todaySwipeDeltaX = 0;
 let todaySwipeActive = false;
 
 const PEN_SELECT_PRESETS = {
+  penChannel:['淘宝', '小红书', 'KTT', '拼多多', '京东', '线下'],
   penBrand:['匠心优品','金豪','里莜','弘典','败家实验室'],
   penNibType:['品牌标配','弘典中国结','弘典经典','匠心优品打磨长刀','匠心优品打磨瘦金','笔意阑珊打磨长刀','胖叔打磨','字里行间玻璃尖'],
   penNibSpec:['EEF','EF','F','MF','M','B','小美工尖']
@@ -2396,15 +2400,18 @@ function penInkLabel(p){
   return i ? `${i.brand} · ${i.name}` : '已灌墨 · 未关联墨水';
 }
 function penCardTheme(pen){
-  const dot=penTheme(pen).dot;
-  const ink=pen.inkStatus==='已灌墨'?inks.find(i=>i.id===pen.inkId):null;
-  if(ink && inkHexColor(ink.baseColor))return {...inkTheme(ink),dot};
-  return {bg:'#F5F8F7',border:'#DFE9E7',dot};
+  return {bg:'#F5F8F7',border:'#DFE9E7',dot:'#82A49E'};
+}
+function penInkBottle(p){
+  const ink=p.inkStatus==='已灌墨'?inks.find(i=>i.id===p.inkId):null;
+  const color=ink?inkHexColor(ink.baseColor):'';
+  const label=color?'所灌墨水：'+(ink.name||'墨水')+' '+color:(p.inkStatus==='已灌墨'?'所灌墨水未填写有效色值':'未灌墨');
+  return `<svg class="pen-ink-bottle" viewBox="0 0 32 40" role="img" aria-label="${esc(label)}"><title>${esc(label)}</title><g stroke="#71948D" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M10 11v4C4 16 2 19 2 23v11q0 4 4 4h20q4 0 4-4V23c0-4-2-7-8-8v-4Z" fill="${color||'#F5F8F7'}"/><path d="M9 4q0-1 1-1h12q1 0 1 1v7H9Z" fill="#E0E9E6"/><path d="M12 5v4m4-4v4m4-4v4M10 13h12" fill="none"/><path d="M8 22h16v11H8Z" fill="#F5F8F7" fill-opacity=".94"/><path d="m16 23-3 5 3 4 3-4Z" fill="none" stroke-width=".9"/><path d="M16 26v4m0-2.5h.01M5 25v8q0 2 2 2" fill="none" stroke-width=".85"/></g></svg>`;
 }
 function penCardHTML(p){
   const theme=penCardTheme(p);
   return `<article class="pen-card" data-pen-id="${esc(p.id)}" style="--pen-bg:${theme.bg};--pen-border:${theme.border};--pen-dot:${theme.dot};${theme.text?`--pen-ink-text:${theme.text}`:''}">
-    <div class="pen-card-top"><div class="pen-card-main"><div class="pen-series">${esc(p.series||'未填写系列')}</div><div class="pen-color">${esc(p.color||'未填写颜色')}</div></div></div>
+    <div class="pen-card-top"><div class="pen-card-main"><div class="pen-series">${esc(p.series||'未填写系列')}</div><div class="pen-color">${esc(p.color||'未填写颜色')}</div></div>${penInkBottle(p)}</div>
     <div class="pen-nib">${esc(p.nibType||'未填写笔尖')}${p.nibSpec?` · ${esc(p.nibSpec)}`:''}${p.nibColor?` · ${esc(p.nibColor)}`:''}</div>
     ${cardFooterHTML([penInkLabel(p),cardStorageLocation(p)])}
   </article>`;
@@ -2470,6 +2477,7 @@ function setPenSelectOrCustom(field,value=''){
 function penSelectValue(field){const select=$(field),custom=$(field+'Custom');return select.value==='其他'?(custom.value.trim()):select.value;}
 function togglePenCustomField(field){const custom=$(field+'Custom'),wrap=$(field+'CustomWrap'),isCustom=$(field).value==='其他';wrap.classList.toggle('hidden',!isCustom);if(!isCustom)custom.value='';}
 function clearPenForm(){
+  setPenSelectOrCustom('penChannel','');
   $('penForm').reset(); $('penId').value='';
   setPenSelectOrCustom('penBrand','');
   setPenSeriesForBrand('','');
@@ -2490,12 +2498,12 @@ function openPenForm(id=''){
     $('penNibColor').value=p.nibColor||'';
     $('penInkStatus').value=p.inkStatus||'未灌墨';
     populatePenInkOptions(p.inkId||'');togglePenInkField();
-    $('penPrice').value=p.price??'';$('penChannel').value=p.channel||'';$('penStorageLocation').value=p.storageLocation||'';$('penNotes').value=p.notes||'';
+    $('penPrice').value=p.price??'';setPenSelectOrCustom('penChannel',p.channel||'');$('penStorageLocation').value=p.storageLocation||'';$('penNotes').value=p.notes||'';
   }
   $('penFormBackdrop').classList.remove('hidden');
 }
 function closePenForm(){$('penFormBackdrop').classList.add('hidden');}
-function readPenForm(){return {id:$('penId').value||`pen${Date.now()}`,brand:penSelectValue('penBrand'),series:penSeriesValue(),color:$('penColor').value.trim(),nibType:penSelectValue('penNibType'),nibSpec:penSelectValue('penNibSpec'),nibColor:$('penNibColor').value.trim(),inkStatus:$('penInkStatus').value,inkId:$('penInkStatus').value==='已灌墨'?$('penInkId').value:'',price:$('penPrice').value===''?'':Number($('penPrice').value),channel:$('penChannel').value.trim(),storageLocation:$('penStorageLocation').value.trim(),notes:$('penNotes').value.trim()};}
+function readPenForm(){return {id:$('penId').value||`pen${Date.now()}`,brand:penSelectValue('penBrand'),series:penSeriesValue(),color:$('penColor').value.trim(),nibType:penSelectValue('penNibType'),nibSpec:penSelectValue('penNibSpec'),nibColor:$('penNibColor').value.trim(),inkStatus:$('penInkStatus').value,inkId:$('penInkStatus').value==='已灌墨'?$('penInkId').value:'',price:$('penPrice').value===''?'':Number($('penPrice').value),channel:penSelectValue('penChannel').trim(),storageLocation:$('penStorageLocation').value.trim(),notes:$('penNotes').value.trim()};}
 async function savePenForm(){
   const p=readPenForm();
   if(!p.brand){showToast('品牌还没选择或填写');return;}
@@ -3471,7 +3479,7 @@ $('brand').addEventListener('change',()=>{
 });
 $('paperType').addEventListener('change',()=>toggleCustomField('paperType'));
 
-['penNibType','penNibSpec'].forEach(f=>$(f).addEventListener('change',()=>togglePenCustomField(f)));
+['penNibType','penNibSpec','penChannel'].forEach(f=>$(f).addEventListener('change',()=>togglePenCustomField(f)));
 $('penBrand').addEventListener('change',()=>{
   togglePenCustomField('penBrand');
   const brand=$('penBrand').value==='其他'?'__custom__':$('penBrand').value;
